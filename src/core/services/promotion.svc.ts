@@ -172,7 +172,7 @@ export class PromotionService implements IPromotionService {
 
   // CALCULATE PROMOTIONS
   public async calculate(cartId: string, facts: any, promotionId: string): Promise<Result<any, AppError>> {
-    console.log('Calculating promotions for', cartId ? cartId : '[body data]');
+    //console.log('Calculating promotions for', cartId ? cartId : '[body data]');
     if (cartId) {
       const cart = await getCart(cartId);
       facts = convertCart(cart);

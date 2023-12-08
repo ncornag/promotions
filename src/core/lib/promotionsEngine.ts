@@ -6,7 +6,7 @@ import jsonata, { Expression } from 'jsonata';
 import { green, magenta, yellow } from 'kolorist';
 
 const cache = new Map();
-const debug = true;
+const debug = false;
 
 function expression(expression: string): Expression {
   let compiled: Expression = cache.get(expression);
@@ -26,7 +26,7 @@ async function createLineDiscount(facts: any, bindings: any, promotionId: any, a
   const discountExpressionResult = await discountExpression.evaluate(facts, bindings);
   if (debug) console.log(`    ${green('sku')}: ${action.sku} = ${green(skuExpressionResult)}`);
   if (debug) console.log(`    ${green('discount')}: ${action.discount} = ${green(discountExpressionResult)}`);
-  facts.discounts.push({
+  bindings.discounts.push({
     promotionId,
     type: 'lineDiscount',
     sku: skuExpressionResult,
@@ -39,7 +39,7 @@ async function createOrderDiscount(facts: any, bindings: any, promotionId: any, 
   const discountExpression = expression(action.discount);
   const discountExpressionResult = await discountExpression.evaluate(facts, bindings);
   if (debug) console.log(`    ${green('discount')}: ${action.discount} = ${green(discountExpressionResult)}`);
-  facts.discounts.push({
+  bindings.discounts.push({
     promotionId,
     type: 'orderDiscount',
     centAmount: -(discountExpressionResult * 100).toFixed(0) / 100
@@ -55,8 +55,14 @@ async function tagAsUsed(facts: any, bindings: any, promotionId: any, action: an
     if (factProductIndex != -1) {
       const quantityExpression = expression(product.quantity);
       const quantityExpressionResult = await quantityExpression.evaluate(facts, bindings);
-      if (debug) console.log(`    ${green('productId')}: ${product.productId} = ${green(productIdExpressionResult)}`);
-      if (debug) console.log(`    ${green('quantity')}: ${product.quantity} = ${green(quantityExpressionResult)}`);
+      if (debug)
+        console.log(
+          `    ${green('productId')}: ${product.productId} = ${green(productIdExpressionResult)} | ${green(
+            'quantity'
+          )}: ${product.quantity} = ${green(quantityExpressionResult)} | ${
+            facts.products[factProductIndex].quantity
+          } => ${facts.products[factProductIndex].quantity - quantityExpressionResult}`
+        );
       facts.products[factProductIndex].quantity -= quantityExpressionResult;
       if (facts.products[factProductIndex].quantity <= 0) {
         facts.products.splice(factProductIndex, 1);
@@ -116,7 +122,7 @@ export class PromotionsEngine {
   }
 
   async run(facts: any, promotionId?: string): Promise<Result<any, AppError>> {
-    const bindings = {};
+    const bindings = { discounts: [] };
     const promotionsFilter: any = {
       active: {
         $ne: false
@@ -132,7 +138,7 @@ export class PromotionsEngine {
     const start = process.hrtime.bigint();
     // Run each promotion in order
     for await (const promotion of promotions) {
-      console.log(yellow(promotion.name));
+      if (debug) console.log(`${yellow(promotion.name)} (${promotion.times ? promotion.times : '∞'})`);
       let rulesResult = false;
       let executions = 0;
       let maxExecutions = promotion.times || securityStopExecutionTimes;
@@ -148,7 +154,12 @@ export class PromotionsEngine {
     }
     const end = process.hrtime.bigint();
     const diff = (Number(end - start) / 1000000).toFixed(3);
-    console.log(`${green('PromotionsEngine.run took')} ${magenta(diff)}ms`);
-    return new Ok(facts.discounts);
+    const perMs = ((1000000 * promotions.length) / Number(end - start)).toFixed(2);
+    console.log(
+      `${green('PromotionsEngine.run in')} ${magenta(diff)}ms. ${yellow(
+        promotions.length
+      )} promotions checked at ${magenta(perMs)} promotions/ms. ${yellow(bindings.discounts.length)} discounts fired.`
+    );
+    return new Ok(bindings.discounts);
   }
 }

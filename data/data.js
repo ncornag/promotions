@@ -14,13 +14,13 @@ db.Promotion.insertMany([
       bundledProduct: "products[sku='SKU2']",
       vip: "customer['VIP' in groups]"
     },
-    then: [{ 
+    then: [{
         action: "createLineDiscount",
         sku: "$baseProduct.sku",
         discount: "(($baseProduct.centAmount + $bundledProduct.centAmount)-1500)/2"
       },{ 
         action: "createLineDiscount",
-        sku: "bundledProduct.sku",
+        sku: "$bundledProduct.sku",
         discount: "(($baseProduct.centAmount + $bundledProduct.centAmount)-1500)/2"
       },{
         action: "tagAsUsed",
@@ -126,7 +126,7 @@ db.Promotion.insertMany([
     projectId: "TestProject",
     name: "Spend more than €500 and get 10% off",
     when: {
-      totalAfterDiscounts: "total + $sum(discounts.centAmount)"
+      totalAfterDiscounts: "total + $sum($discounts.centAmount)"
       bigOrder: "$totalAfterDiscounts>=50000"
     },
     then: [{ 
