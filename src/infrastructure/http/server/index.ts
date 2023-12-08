@@ -81,7 +81,7 @@ export const createServer = async (): Promise<FastifyInstance> => {
   const { PROJECTID: projectId = 'TestProject' } = server.config;
   await server.register(fastifyRequestLogger); //, { logBody: true }
   await server.register(docs);
-  await server.register(rabbitmq);
+  //await server.register(rabbitmq);
   await server.register(mongo);
   await server.register(sendAppError);
   await server.register(fastifyRequestContext);
@@ -96,10 +96,10 @@ export const createServer = async (): Promise<FastifyInstance> => {
 
   // Load Routes
   await server.register(promotionRoutes, { prefix: '/promotions' });
-  await server.register(auditLogRoutes, { prefix: '/auditLog' });
+  //await server.register(auditLogRoutes, { prefix: '/auditLog' });
 
   // Load Listeners
-  auditLogListener(server);
+  //auditLogListener(server);
 
   await server.ready();
 
