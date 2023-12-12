@@ -5,18 +5,48 @@ import { Promotion, Then, When } from '@core/entities/promotion';
 import jsonata, { Expression } from 'jsonata';
 import { green, magenta, yellow } from 'kolorist';
 
-const cache = new Map();
+const cache = new Map<string, Expression>();
 const debug = false;
 
+// EXPRESSIONS
+
+function productWithSku(products: any, sku: string) {
+  // const e = expression(`products["products[sku='${sku}']`);
+  return products.find((p: any) => p.sku === sku);
+}
+
+function productInCategory(products: any, category: string) {
+  // const e = expression(`products["${category}" in categories][0]`);
+  return products.find((p: any) => p.categories.find((c: any) => c === category) != undefined);
+}
+
+function lowestPricedProductInCategory(products: any, category: string) {
+  // const e = expression(`products['${category}' in categories]^(centAmount)[0]`);
+  let min: number = Number.MAX_SAFE_INTEGER;
+  let result: any;
+  for (const product of products) {
+    if (product.categories.find((c: any) => c === category) != undefined && product.centAmount < min) {
+      min = product.centAmount;
+      result = product;
+    }
+  }
+  return result;
+}
+
 function expression(expression: string): Expression {
-  let compiled: Expression = cache.get(expression);
+  let compiled: Expression | undefined = cache.get(expression);
   if (!compiled) {
     compiled = jsonata(expression);
+    compiled.registerFunction('productInCategory', productInCategory, '<as:o>');
+    compiled.registerFunction('lowestPricedProductInCategory', lowestPricedProductInCategory, '<as:o>');
+    compiled.registerFunction('productWithSku', productWithSku, '<as:o>');
     cache.set(expression, compiled);
     return compiled;
   }
   return compiled;
 }
+
+// ACTIONS
 
 async function createLineDiscount(facts: any, bindings: any, promotionId: any, action: any) {
   if (debug) console.log(yellow('  creating LineDiscount'));
@@ -51,21 +81,21 @@ async function tagAsUsed(facts: any, bindings: any, promotionId: any, action: an
   for await (const product of action.products) {
     const productIdExpression = expression(product.productId);
     const productIdExpressionResult = await productIdExpression.evaluate(facts, bindings);
-    const factProductIndex = facts.products.findIndex((p: any) => p.id === productIdExpressionResult);
-    if (factProductIndex != -1) {
+    const productIndex = facts.products.findIndex((p: any) => p.id === productIdExpressionResult);
+    if (productIndex != -1) {
       const quantityExpression = expression(product.quantity);
       const quantityExpressionResult = await quantityExpression.evaluate(facts, bindings);
       if (debug)
         console.log(
           `    ${green('productId')}: ${product.productId} = ${green(productIdExpressionResult)} | ${green(
             'quantity'
-          )}: ${product.quantity} = ${green(quantityExpressionResult)} | ${
-            facts.products[factProductIndex].quantity
-          } => ${facts.products[factProductIndex].quantity - quantityExpressionResult}`
+          )}: ${product.quantity} = ${green(quantityExpressionResult)} | ${facts.products[productIndex].quantity} => ${
+            facts.products[productIndex].quantity - quantityExpressionResult
+          }`
         );
-      facts.products[factProductIndex].quantity -= quantityExpressionResult;
-      if (facts.products[factProductIndex].quantity <= 0) {
-        facts.products.splice(factProductIndex, 1);
+      facts.products[productIndex].quantity -= quantityExpressionResult;
+      if (facts.products[productIndex].quantity <= 0) {
+        facts.products.splice(productIndex, 1);
       }
     } else {
       throw new Error(`Product ${product.productId} ${productIdExpressionResult} not found`);
@@ -79,6 +109,8 @@ const Actions = {
   tagAsUsed
 };
 
+// ENGINE
+
 export class PromotionsEngine {
   private server: any;
   private promotionsService: IPromotionService;
@@ -90,6 +122,7 @@ export class PromotionsEngine {
   }
 
   async evaluateWhen(when: When, facts: any, bindings: any) {
+    // const start = process.hrtime.bigint();
     let result = true;
     for (const [key, value] of Object.entries(when)) {
       const valueExpression = expression(value);
@@ -109,6 +142,8 @@ export class PromotionsEngine {
       }
       bindings[key] = valueExpressionResult;
     }
+    // const end = process.hrtime.bigint();
+    //if (debug) console.log(`${green('  evaluateWhen')} in ${magenta(Number(end - start))}ns`);
     return result;
   }
 
@@ -117,11 +152,15 @@ export class PromotionsEngine {
       if (!Actions[action.action]) {
         throw new AppError(ErrorCode.BAD_REQUEST, `Action ${action.action} not found`);
       }
+      // const start = process.hrtime.bigint();
       await Actions[action.action](facts, bindings, promotionId, action);
+      // const end = process.hrtime.bigint();
+      // if (debug) console.log(`${green('    evaluateThen')} in ${magenta(Number(end - start))}ns`);
     }
   }
 
   async run(facts: any, promotionId?: string): Promise<Result<any, AppError>> {
+    //const p = await this.firstProductInCategory(facts, 'shoes');
     const bindings = { discounts: [] };
     const promotionsFilter: any = {
       active: {
@@ -136,6 +175,8 @@ export class PromotionsEngine {
     const promotions: Promotion[] = result.val;
     const securityStopExecutionTimes = 999;
     const start = process.hrtime.bigint();
+    const linesInCart = facts.products.length;
+    const productsInCart = facts.products.reduce((acc: number, item: any) => acc + item.quantity, 0);
     // Run each promotion in order
     for await (const promotion of promotions) {
       if (debug) console.log(`${yellow(promotion.name)} (${promotion.times ? promotion.times : '∞'})`);
@@ -158,7 +199,9 @@ export class PromotionsEngine {
     console.log(
       `${green('PromotionsEngine.run in')} ${magenta(diff)}ms. ${yellow(
         promotions.length
-      )} promotions checked at ${magenta(perMs)} promotions/ms. ${yellow(bindings.discounts.length)} discounts fired.`
+      )} promotions checked at ${magenta(perMs)} promotions/ms. in a cart with ${magenta(
+        linesInCart
+      )} lines and ${magenta(productsInCart)} products. ${yellow(bindings.discounts.length)} discounts created.`
     );
     return new Ok(bindings.discounts);
   }

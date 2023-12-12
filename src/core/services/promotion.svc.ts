@@ -13,6 +13,45 @@ import { Config } from '@infrastructure/http/plugins/config';
 import fetch from 'node-fetch';
 
 // COMMERCETOOLS
+const TOKEN = 'DRE11ON7zjGIaEI-QJ_SBzwF1oeXWaeF';
+
+// Add a customline for each type=lineDiscount
+async function addDiscounts(cart: any, discounts: any[]) {
+  let count = 1;
+  const response = await fetch(`https://api.europe-west1.gcp.commercetools.com/nico-test-project/carts/${cart.id}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${TOKEN}`
+    },
+    body: JSON.stringify({
+      version: cart.version,
+      actions: cart.customLineItems
+        .map((customLineItem: any) => ({
+          action: 'removeCustomLineItem',
+          customLineItemId: customLineItem.id
+        }))
+        .concat(
+          discounts.map((discount: any) => ({
+            action: 'addCustomLineItem',
+            name: { en: `Discount [${discount.promotionId}] for ${discount.sku ? discount.sku : 'order'}` },
+            quantity: 1,
+            money: {
+              currencyCode: 'EUR',
+              centAmount: discount.centAmount
+            },
+            slug: `discount-${discount.sku ? discount.sku : 'order'}-${count++}`,
+            taxCategory: {
+              typeId: 'tax-category',
+              id: '42e4dd43-da43-4c7a-b0df-e660eb527c05'
+            },
+            priceMode: 'External'
+          }))
+        )
+    })
+  });
+  return response.json();
+}
 
 // Fetch a commercetools Cart by ID using node-fetch
 async function getCart(cartId: string) {
@@ -20,13 +59,13 @@ async function getCart(cartId: string) {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: 'Bearer UAyyZvcaPgP3NHUQFgAtwlF0Rf_YqvaP'
+      Authorization: `Bearer ${TOKEN}`
     }
   });
   return response.json();
 }
 
-const Customer = { groups: ['VIP'] };
+const Customer = { customerGroup: 'VIP' };
 const Categories = new Map<string, string>([
   ['SKU1', 'shoes'],
   ['SKU2', 'trainers'],
@@ -173,15 +212,22 @@ export class PromotionService implements IPromotionService {
   // CALCULATE PROMOTIONS
   public async calculate(cartId: string, facts: any, promotionId: string): Promise<Result<any, AppError>> {
     //console.log('Calculating promotions for', cartId ? cartId : '[body data]');
+    let cart: any;
     if (cartId) {
-      const cart = await getCart(cartId);
+      cart = await getCart(cartId);
       facts = convertCart(cart);
-      console.log(facts);
+      // console.log(facts);
     } else {
       facts.total = facts.products.reduce((acc: number, item: any) => acc + item.centAmount * item.quantity, 0); // Added for quick testing
     }
     const result = await this.server.promotionsEngine.run(facts, promotionId);
     if (result.err) return result;
+    // console.log(result.val);
+    if (cartId) {
+      const discountsResult = await addDiscounts(cart, result.val);
+      if (discountsResult.errors)
+        return new Err(new AppError(ErrorCode.BAD_REQUEST, discountsResult.errors[0].message));
+    }
     return Ok(result.val);
   }
 }

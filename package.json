@@ -19,6 +19,7 @@
     "@shelf/jest-mongodb": "^4.1.6",
     "@types/jest": "^29.4.0",
     "@types/node": "^18.14.2",
+    "@types/node-fetch": "^2.6.9",
     "@typescript-eslint/eslint-plugin": "^5.54.0",
     "eslint": "^8.35.0",
     "eslint-config-standard-with-typescript": "^34.0.0",
@@ -52,8 +53,9 @@
     "module-alias": "^2.2.2",
     "mongo-update": "^1.1.0",
     "nanoid": "^3.3.4",
-    "node-fetch": "^3.3.2",
+    "node-fetch": "^2.7.0",
     "nodemon": "^3.0.1",
+    "rimraf": "^5.0.5",
     "ts-results": "^3.3.0",
     "typescript": "^5.2.2"
   },

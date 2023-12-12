@@ -4,15 +4,19 @@ db.Promotion.deleteMany({});
 
 db.Promotion.insertMany([
     
+  // product: "$productWithSku(products, 'SKU1')",
+  // product: "$productInCategory(products, 'shoes')",
+  // product: "$lowestPricedProductInCategory(products, 'shoes')",
     
   {
     _id: "Buy1SKU1andSKU2for15forVIPs",
-    projectId: "TestProject",
     name: "Buy SKU1 and SKU2 for €15 for VIP customers",
     when: {
-      baseProduct: "products[sku='SKU1']",
-      bundledProduct: "products[sku='SKU2']",
-      vip: "customer['VIP' in groups]"
+       baseProduct: "$productWithSku(products, 'SKU1')",
+        bundledProduct: "$productWithSku(products, 'SKU2')",
+    //   baseProduct: "products[sku='SKU1']",
+    //   bundledProduct: "products[sku='SKU2']",
+      vip: "customer.customerGroup='VIP'"
     },
     then: [{
         action: "createLineDiscount",
@@ -29,36 +33,30 @@ db.Promotion.insertMany([
             { productId: "$bundledProduct.id", quantity: "1" }
         ]
     }],
-    times:1,
-    version: 0,
-    createdAt: "2023-01-15T00:00:00.000+00:00"
+    times:1
   },
   
   
-  {
-    _id: "10%OffInShoes",
-    projectId: "TestProject",
-    name: "10% off on all shoes",
-    when: {
-      product: "products['shoes' in categories][0]"
-    },
-    then: [{
-        action: "createLineDiscount",
-        sku: "$product.sku",
-        discount: "$product.centAmount * 0.1"
-      },{
-        action: "tagAsUsed",
-        products: [{ productId: "$product.id", quantity: "1" }]
-    }],
-    version: 0,
-    active: false,
-    createdAt: "2023-01-15T00:00:00.000+00:00"
-  },
+//   {
+//     _id: "10%OffInShoes",
+//     name: "10% off on all shoes",
+//     when: {
+//       product: "products['shoes' in categories][0]"
+//     },
+//     then: [{
+//         action: "createLineDiscount",
+//         sku: "$product.sku",
+//         discount: "$product.centAmount * 0.1"
+//       },{
+//         action: "tagAsUsed",
+//         products: [{ productId: "$product.id", quantity: "1" }]
+//     }],
+//     active: false
+//   },
   
   
   {
     _id: "3x2InSKU4",
-    projectId: "TestProject",
     name: "3x2 on SKU4",
     when: {
       product: "products[sku='SKU4' and quantity>2]"
@@ -70,15 +68,12 @@ db.Promotion.insertMany([
     },{ 
         action: "tagAsUsed", 
         products: [{ productId: "$product.id", quantity: "3" }]
-    }],
-    version: 0,
-    createdAt: "2023-01-15T00:00:00.000+00:00"
+    }]
   },
   
   
   {
     _id: "buy1ShoeGet5OffTrainer",
-    projectId: "TestProject",
     name: "Buy 1 Shoe and get €5 off in 1 Trainer",
     when: {
       baseProduct: "products['shoes' in categories][0]",
@@ -94,15 +89,12 @@ db.Promotion.insertMany([
             { productId: "$baseProduct.id", quantity: "1" },
             { productId: "$secondProduct.id", quantity: "1" }
         ]
-    }],
-    version: 0,
-    createdAt: "2023-01-15T00:00:00.000+00:00"
+    }]
   },
 
 
   {
     _id: "10%OffIn1ShirtFor100SpendOnShoes",
-    projectId: "TestProject",
     name: "Spend more than €100 in shoes and get 10% off in one shirt",
     when: {
       shoesTotal: "$sum(products['shoes' in categories].(centAmount*quantity))>10000",
@@ -116,14 +108,11 @@ db.Promotion.insertMany([
         action: "tagAsUsed", 
         products: [{ productId: "$shirt.id", quantity: "1" }] 
     }],
-    times: 1,
-    version: 0,
-    createdAt: "2023-01-15T00:00:00.000+00:00"
+    times: 1
   },
   
     {
     _id: "10%OffFor500PlusSpend",
-    projectId: "TestProject",
     name: "Spend more than €500 and get 10% off",
     when: {
       totalAfterDiscounts: "total + $sum($discounts.centAmount)"
@@ -133,11 +122,19 @@ db.Promotion.insertMany([
         action: "createOrderDiscount",
         discount: "$totalAfterDiscounts * 0.1"
     }],
-    times: 1,
-    version: 0,
-    createdAt: "2023-01-15T00:00:00.000+00:00"
+    times: 1
   }
 
 
 ]);
+
+db.Promotion.updateMany({}, {
+    $set:{
+        projectId: "TestProject",
+        version: 0,
+        createdAt: "2023-01-15T00:00:00.000+00:00"
+    }
+});
+
+
 

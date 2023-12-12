@@ -4,14 +4,13 @@ import { ErrorCode, AppError } from '@core/lib/appError';
 import { type IAuditLogRepository } from '@core/repositories/auditLog.repo';
 import { AuditLog } from '@core/entities/auditLog';
 import { AuditLogDAO } from '@infrastructure/repositories/dao/auditLog.dao.schema';
-import { ITreeRepo } from '@core/lib/tree';
 
 export const getAuditLogCollection = (db: Db): Collection<AuditLogDAO> => {
   return db.collection<AuditLogDAO>('AuditLog');
 };
 
 // TODO: Use a different collection per ProjectId
-export class AuditLogRepository implements IAuditLogRepository, ITreeRepo<AuditLogDAO> {
+export class AuditLogRepository implements IAuditLogRepository {
   private col: Collection<AuditLogDAO>;
 
   constructor(server: any) {

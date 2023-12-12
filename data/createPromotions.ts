@@ -7,9 +7,11 @@ function randomIntFromInterval(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
+let counter = 1;
+
 function createRandomPromotion(projectId: string): any {
-  const cat1 = 'shoes';
-  const cat2 = 'trainers';
+  const cat1 = 'cat' + counter++;
+  const cat2 = 'cat' + counter++;
   let result: any = {
     _id: nanoid(),
     projectId,
@@ -19,8 +21,11 @@ function createRandomPromotion(projectId: string): any {
     //active: true, // Default true
     name: `Buy 1 ${cat1} and get 10% off in 1 ${cat2}`,
     when: {
-      baseProduct: `products['${cat1}' in categories][0]`,
-      secondProduct: `products['${cat2}' in categories]^(centAmount)[0]`
+      // baseProduct: `products['${cat1}' in categories][0]`,
+      // minPrice: `$min(products['${cat2}' in categories].centAmount)`,
+      // secondProduct: `products['${cat2}' in categories and centAmount=$minPrice][0]`
+      baseProduct: `$productInCategory(products, '${cat1}')`,
+      secondProduct: `$lowestPricedProductInCategory(products, '${cat2}')`
     },
     then: [
       {

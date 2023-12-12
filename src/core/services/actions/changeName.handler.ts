@@ -1,6 +1,6 @@
 import { Ok, Result } from 'ts-results';
 import { AppError } from '@core/lib/appError';
-import { UpdateClassificationCategoryChangeName } from '@core/entities/classificationCategory';
+import { UpdatePromotionChangeName } from '@core/entities/promotion';
 import { ActionHandlerResult } from '@core/services/actions';
 
 interface DAOwithName {
@@ -16,7 +16,7 @@ export class ChangeNameActionHandler<Repository> {
   async run(
     entity: DAOwithName,
     toUpdateEntity: DAOwithName,
-    action: UpdateClassificationCategoryChangeName,
+    action: UpdatePromotionChangeName,
     classificationCategoryRepository: Repository
   ): Promise<Result<ActionHandlerResult, AppError>> {
     if (entity.name === action.name) return new Ok({ update: {} });

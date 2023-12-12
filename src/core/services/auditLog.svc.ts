@@ -55,7 +55,8 @@ export class AuditlogService implements IAuditLogService {
   // FIND AUDITLOGS
   public async findAuditLogs(catalogId: string): Promise<Result<AuditLog[], AppError>> {
     const result = await this.repo.find({ catalogId }, {});
-    const massagedResults = result.val.map((e: AuditLog) => {
+    if (result.err) return result;
+    const massagedResults = result.val.map((e: any) => {
       if (e.edits == null) return e;
       return {
         ...e,
@@ -65,7 +66,6 @@ export class AuditlogService implements IAuditLogService {
       };
     });
 
-    if (result.err) return result;
     return new Ok(massagedResults.map((e: AuditLogDAO) => toEntity(e)));
   }
 }
