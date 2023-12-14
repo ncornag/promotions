@@ -1,6 +1,6 @@
 import fp from 'fastify-plugin';
 import { FastifyPluginCallback } from 'fastify';
-import { PromotionsEngine } from '@core/lib/promotionsEngine';
+import { PromotionsEngine } from '@core/lib/promotionsEngine/engine';
 
 declare module 'fastify' {
   export interface FastifyInstance {

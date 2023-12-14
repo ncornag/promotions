@@ -11,81 +11,90 @@ import { UpdateEntityActionsRunner } from '@core/lib/updateEntityActionsRunner';
 import { ChangeNameActionHandler } from './actions/changeName.handler';
 import { Config } from '@infrastructure/http/plugins/config';
 import fetch from 'node-fetch';
+import { ApiRoot, createApiBuilderFromCtpClient } from '@commercetools/platform-sdk';
+import { ctpClient } from '@core/lib/ctpClient';
 
-// COMMERCETOOLS
-const TOKEN = 'DRE11ON7zjGIaEI-QJ_SBzwF1oeXWaeF';
+class CTAdapter {
+  private server;
+  private apiRoot;
+  Customer = { customerGroup: 'VIP' };
+  Categories = new Map<string, string>([
+    ['SKU1', 'shoes'],
+    ['SKU2', 'trainers'],
+    ['SKU3', 'shirts'],
+    ['SKU4', 'shirts']
+  ]);
 
-// Add a customline for each type=lineDiscount
-async function addDiscounts(cart: any, discounts: any[]) {
-  let count = 1;
-  const response = await fetch(`https://api.europe-west1.gcp.commercetools.com/nico-test-project/carts/${cart.id}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${TOKEN}`
-    },
-    body: JSON.stringify({
-      version: cart.version,
-      actions: cart.customLineItems
-        .map((customLineItem: any) => ({
-          action: 'removeCustomLineItem',
-          customLineItemId: customLineItem.id
-        }))
-        .concat(
-          discounts.map((discount: any) => ({
-            action: 'addCustomLineItem',
-            name: { en: `Discount [${discount.promotionId}] for ${discount.sku ? discount.sku : 'order'}` },
-            quantity: 1,
-            money: {
-              currencyCode: 'EUR',
-              centAmount: discount.centAmount
-            },
-            slug: `discount-${discount.sku ? discount.sku : 'order'}-${count++}`,
-            taxCategory: {
-              typeId: 'tax-category',
-              id: '42e4dd43-da43-4c7a-b0df-e660eb527c05'
-            },
-            priceMode: 'External'
-          }))
-        )
-    })
-  });
-  return response.json();
-}
+  constructor(server: any) {
+    this.server = server;
+    // Create apiRoot from the imported ClientBuilder and include your Project key
+    this.apiRoot = createApiBuilderFromCtpClient(ctpClient(this.server)).withProjectKey({
+      projectKey: this.server.config.CT_PROJECTKEY
+    });
+  }
 
-// Fetch a commercetools Cart by ID using node-fetch
-async function getCart(cartId: string) {
-  const response = await fetch(`https://api.europe-west1.gcp.commercetools.com/nico-test-project/carts/${cartId}`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${TOKEN}`
-    }
-  });
-  return response.json();
-}
+  convertCart(cart: any) {
+    const products = cart.lineItems.map((lineItem: any) => ({
+      id: lineItem.productId,
+      sku: lineItem.variant.sku,
+      centAmount: lineItem.price.value.centAmount,
+      quantity: lineItem.quantity,
+      categories: [this.Categories.get(lineItem.variant.sku)]
+    }));
+    return {
+      customer: this.Customer,
+      products,
+      total: cart.totalPrice.centAmount
+    };
+  }
 
-const Customer = { customerGroup: 'VIP' };
-const Categories = new Map<string, string>([
-  ['SKU1', 'shoes'],
-  ['SKU2', 'trainers'],
-  ['SKU3', 'shirts'],
-  ['SKU4', 'shirts']
-]);
+  // Fetch a commercetools Cart by ID using node-fetch
+  async getCart(cartId: string) {
+    return await this.apiRoot
+      .carts()
+      .withId({ ID: cartId })
+      .get()
+      .execute()
+      .then((response: any) => response.body);
+  }
 
-function convertCart(cart: any) {
-  const products = cart.lineItems.map((lineItem: any) => ({
-    id: lineItem.productId,
-    sku: lineItem.variant.sku,
-    centAmount: lineItem.price.value.centAmount,
-    quantity: lineItem.quantity,
-    categories: [Categories.get(lineItem.variant.sku)]
-  }));
-  return {
-    customer: Customer,
-    products,
-    total: cart.totalPrice.centAmount
-  };
+  // Add a customline for each type=lineDiscount
+  async addDiscounts(cart: any, discounts: any[]) {
+    let count = 1;
+    return await this.apiRoot
+      .carts()
+      .withId({ ID: cart.id })
+      .post({
+        body: {
+          version: cart.version,
+          actions: cart.customLineItems
+            .map((customLineItem: any) => ({
+              action: 'removeCustomLineItem',
+              customLineItemId: customLineItem.id
+            }))
+            .concat(
+              discounts.map((discount: any) => ({
+                action: 'addCustomLineItem',
+                name: { en: `Discount [${discount.promotionId}] for ${discount.sku ? discount.sku : 'order'}` },
+                quantity: 1,
+                money: {
+                  currencyCode: 'EUR',
+                  centAmount: discount.centAmount
+                },
+                slug: `discount-${discount.sku ? discount.sku : 'order'}-${count++}`,
+                taxCategory: {
+                  typeId: 'tax-category',
+                  id: '42e4dd43-da43-4c7a-b0df-e660eb527c05'
+                },
+                priceMode: 'External'
+              }))
+            )
+        }
+      })
+      .execute()
+      .then((r) => r.body)
+      .catch((e) => e.body);
+  }
 }
 
 // SERVICE INTERFACE
@@ -112,6 +121,7 @@ export class PromotionService implements IPromotionService {
   private config: Config;
   private messages;
   private server;
+  private ct: CTAdapter;
 
   private constructor(server: any) {
     this.server = server;
@@ -122,6 +132,7 @@ export class PromotionService implements IPromotionService {
     this.actionsRunner = new UpdateEntityActionsRunner<PromotionDAO, IPromotionRepository>();
     this.config = server.config;
     this.messages = server.messages;
+    this.ct = new CTAdapter(server);
   }
 
   public static getInstance(server: any): IPromotionService {
@@ -214,9 +225,9 @@ export class PromotionService implements IPromotionService {
     //console.log('Calculating promotions for', cartId ? cartId : '[body data]');
     let cart: any;
     if (cartId) {
-      cart = await getCart(cartId);
-      facts = convertCart(cart);
-      // console.log(facts);
+      cart = await this.ct.getCart(cartId);
+      facts = this.ct.convertCart(cart);
+      //console.log(facts);
     } else {
       facts.total = facts.products.reduce((acc: number, item: any) => acc + item.centAmount * item.quantity, 0); // Added for quick testing
     }
@@ -224,7 +235,7 @@ export class PromotionService implements IPromotionService {
     if (result.err) return result;
     // console.log(result.val);
     if (cartId) {
-      const discountsResult = await addDiscounts(cart, result.val);
+      const discountsResult = await this.ct.addDiscounts(cart, result.val);
       if (discountsResult.errors)
         return new Err(new AppError(ErrorCode.BAD_REQUEST, discountsResult.errors[0].message));
     }

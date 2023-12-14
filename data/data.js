@@ -1,4 +1,4 @@
-use example;
+use ct2;
 
 db.Promotion.deleteMany({});
 
@@ -12,11 +12,9 @@ db.Promotion.insertMany([
     _id: "Buy1SKU1andSKU2for15forVIPs",
     name: "Buy SKU1 and SKU2 for €15 for VIP customers",
     when: {
-       baseProduct: "$productWithSku(products, 'SKU1')",
-        bundledProduct: "$productWithSku(products, 'SKU2')",
-    //   baseProduct: "products[sku='SKU1']",
-    //   bundledProduct: "products[sku='SKU2']",
-      vip: "customer.customerGroup='VIP'"
+       baseProduct: "products[sku='SKU1']",
+       bundledProduct: "products[sku='SKU2']",
+       vip: "customer.customerGroup='VIP'"
     },
     then: [{
         action: "createLineDiscount",

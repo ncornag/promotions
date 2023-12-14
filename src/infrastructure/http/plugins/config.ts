@@ -32,7 +32,12 @@ const ConfigSchema = Type.Strict(
     CACHE_JSON_SCHEMAS: Type.Boolean({ default: true }),
     TYPESENSE_HOST: Type.Optional(Type.String()),
     TYPESENSE_PORT: Type.Optional(Type.String()),
-    TYPESENSE_API_KEY: Type.Optional(Type.String())
+    TYPESENSE_API_KEY: Type.Optional(Type.String()),
+    CT_REGION: Type.Optional(Type.String()),
+    CT_PROJECTKEY: Type.Optional(Type.String()),
+    CT_SCOPE: Type.Optional(Type.String()),
+    CT_CLIENTID: Type.Optional(Type.String()),
+    CT_CLIENTSECRET: Type.Optional(Type.String())
   })
 );
 

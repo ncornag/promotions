@@ -7,13 +7,14 @@ function randomIntFromInterval(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
-let counter = 1;
+let catCounter = 1;
+let promCounter = 1;
 
 function createRandomPromotion(projectId: string): any {
-  const cat1 = 'cat' + counter++;
-  const cat2 = 'cat' + counter++;
+  const cat1 = 'cat' + catCounter++;
+  const cat2 = 'cat' + catCounter++;
   let result: any = {
-    _id: nanoid(),
+    _id: `prom${promCounter++}`,
     projectId,
     version: 0,
     createdAt: new Date().toISOString(),
