@@ -10,15 +10,15 @@ import { IPromotionRepository } from '@core/repositories/promotion.repo';
 import { UpdateEntityActionsRunner } from '@core/lib/updateEntityActionsRunner';
 import { ChangeNameActionHandler } from './actions/changeName.handler';
 import { Config } from '@infrastructure/http/plugins/config';
-import fetch from 'node-fetch';
-import { ApiRoot, createApiBuilderFromCtpClient } from '@commercetools/platform-sdk';
-import { ctpClient } from '@core/lib/ctpClient';
+import { green, magenta } from 'kolorist';
+import { ct } from '@core/lib/ct';
 
 class CTAdapter {
   private server;
-  private apiRoot;
-  Customer = { customerGroup: 'VIP' };
-  Categories = new Map<string, string>([
+  private ct;
+  private debug: boolean = false;
+  private Customer = { customerGroup: 'VIP' };
+  private Categories = new Map<string, string>([
     ['SKU1', 'shoes'],
     ['SKU2', 'trainers'],
     ['SKU3', 'shirts'],
@@ -28,9 +28,8 @@ class CTAdapter {
   constructor(server: any) {
     this.server = server;
     // Create apiRoot from the imported ClientBuilder and include your Project key
-    this.apiRoot = createApiBuilderFromCtpClient(ctpClient(this.server)).withProjectKey({
-      projectKey: this.server.config.CT_PROJECTKEY
-    });
+    this.ct = ct(this.server);
+    this.debug = server.config.DEBUG;
   }
 
   convertCart(cart: any) {
@@ -48,20 +47,47 @@ class CTAdapter {
     };
   }
 
-  // Fetch a commercetools Cart by ID using node-fetch
+  // Fetch a commercetools Cart by ID
   async getCart(cartId: string) {
-    return await this.apiRoot
-      .carts()
-      .withId({ ID: cartId })
-      .get()
+    const start = process.hrtime.bigint();
+
+    const query = `query Cart {
+                      cart(id: "${cartId}") {
+                          id
+                          lineItems {
+                            id
+                            productId,
+                            variant { sku }
+                            price{ value { centAmount } }
+                            quantity
+                          }
+                          totalPrice {centAmount}
+                      }
+                  }`;
+
+    const cart = await this.ct
+      .graphql()
+      .post({ body: { query } })
       .execute()
-      .then((response: any) => response.body);
+      .then((response: any) => response.body.data.cart);
+
+    // const cart = await this.ct
+    //   .carts()
+    //   .withId({ ID: cartId })
+    //   .get()
+    //   .execute()
+    //   .then((response: any) => response.body);
+
+    const end = process.hrtime.bigint();
+    const diff = (Number(end - start) / 1000000).toFixed(3);
+    console.log(`${green('Get cart took')} ${magenta(diff)}ms`);
+    return cart;
   }
 
   // Add a customline for each type=lineDiscount
   async addDiscounts(cart: any, discounts: any[]) {
     let count = 1;
-    return await this.apiRoot
+    return await this.ct
       .carts()
       .withId({ ID: cart.id })
       .post({
@@ -121,7 +147,7 @@ export class PromotionService implements IPromotionService {
   private config: Config;
   private messages;
   private server;
-  private ct: CTAdapter;
+  private ctAdapter: CTAdapter;
 
   private constructor(server: any) {
     this.server = server;
@@ -132,7 +158,7 @@ export class PromotionService implements IPromotionService {
     this.actionsRunner = new UpdateEntityActionsRunner<PromotionDAO, IPromotionRepository>();
     this.config = server.config;
     this.messages = server.messages;
-    this.ct = new CTAdapter(server);
+    this.ctAdapter = new CTAdapter(server);
   }
 
   public static getInstance(server: any): IPromotionService {
@@ -225,8 +251,8 @@ export class PromotionService implements IPromotionService {
     //console.log('Calculating promotions for', cartId ? cartId : '[body data]');
     let cart: any;
     if (cartId) {
-      cart = await this.ct.getCart(cartId);
-      facts = this.ct.convertCart(cart);
+      cart = await this.ctAdapter.getCart(cartId);
+      facts = this.ctAdapter.convertCart(cart);
       //console.log(facts);
     } else {
       facts.total = facts.products.reduce((acc: number, item: any) => acc + item.centAmount * item.quantity, 0); // Added for quick testing
@@ -234,11 +260,11 @@ export class PromotionService implements IPromotionService {
     const result = await this.server.promotionsEngine.run(facts, promotionId);
     if (result.err) return result;
     // console.log(result.val);
-    if (cartId) {
-      const discountsResult = await this.ct.addDiscounts(cart, result.val);
-      if (discountsResult.errors)
-        return new Err(new AppError(ErrorCode.BAD_REQUEST, discountsResult.errors[0].message));
-    }
+    // if (cartId) {
+    //   const discountsResult = await this.ct.addDiscounts(cart, result.val);
+    //   if (discountsResult.errors)
+    //     return new Err(new AppError(ErrorCode.BAD_REQUEST, discountsResult.errors[0].message));
+    // }
     return Ok(result.val);
   }
 }

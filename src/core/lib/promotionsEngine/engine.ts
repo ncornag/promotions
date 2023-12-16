@@ -7,7 +7,7 @@ import { EngineActions } from './actions';
 import { Expressions } from './expressions';
 
 export class PromotionsEngine {
-  private debug = true;
+  private debug = false;
   private server: any;
   private promotionsService: IPromotionService;
   private Actions: EngineActions;
@@ -19,6 +19,7 @@ export class PromotionsEngine {
     this.expressions = new Expressions(this.server);
     this.Actions = new EngineActions(this.server, this.expressions, this.debug);
     this.promotionsService = PromotionService.getInstance(server);
+    this.debug = server.config.DEBUG;
   }
 
   async evaluateWhen(when: When, facts: any, bindings: any) {

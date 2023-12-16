@@ -1,4 +1,5 @@
 import fetch from 'node-fetch';
+import { ApiRoot, createApiBuilderFromCtpClient } from '@commercetools/platform-sdk';
 
 import {
   ClientBuilder,
@@ -6,10 +7,12 @@ import {
   type AuthMiddlewareOptions, // Required for auth
   type HttpMiddlewareOptions // Required for sending HTTP requests
 } from '@commercetools/sdk-client-v2';
+import { ByProjectKeyRequestBuilder } from '@commercetools/platform-sdk/dist/declarations/src/generated/client/by-project-key-request-builder';
 
-export const ctpClient = (server: any) => {
+export const ct = (server: any): ByProjectKeyRequestBuilder => {
   const {
-    CT_REGION: region,
+    CT_AUTHHOST: authHost,
+    CT_HTTPHOST: httpHost,
     CT_PROJECTKEY: projectKey,
     CT_SCOPE: [scopes],
     CT_CLIENTID: clientId,
@@ -18,7 +21,7 @@ export const ctpClient = (server: any) => {
 
   // Configure authMiddlewareOptions
   const authMiddlewareOptions: AuthMiddlewareOptions = {
-    host: `https://auth.${region}.commercetools.com`,
+    host: `https://${authHost}`,
     projectKey,
     credentials: {
       clientId,
@@ -30,18 +33,17 @@ export const ctpClient = (server: any) => {
 
   // Configure httpMiddlewareOptions
   const httpMiddlewareOptions: HttpMiddlewareOptions = {
-    host: `https://api.${region}.commercetools.com`,
+    host: `https://${httpHost}`,
     fetch
   };
 
   // Return the ClientBuilder
-  return (
-    new ClientBuilder()
-      // .withProjectKey() is not required if the projectKey is included in authMiddlewareOptions
-      // .withProjectKey(projectKey)
-      .withClientCredentialsFlow(authMiddlewareOptions)
-      .withHttpMiddleware(httpMiddlewareOptions)
-      //.withLoggerMiddleware() // Include middleware for logging
-      .build()
-  );
+  const ctpClient = new ClientBuilder()
+    //.withProjectKey(projectKey)
+    .withClientCredentialsFlow(authMiddlewareOptions)
+    .withHttpMiddleware(httpMiddlewareOptions)
+    //.withLoggerMiddleware()
+    .build();
+
+  return createApiBuilderFromCtpClient(ctpClient).withProjectKey({ projectKey });
 };
