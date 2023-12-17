@@ -11,11 +11,11 @@ import { UpdateEntityActionsRunner } from '@core/lib/updateEntityActionsRunner';
 import { ChangeNameActionHandler } from './actions/changeName.handler';
 import { Config } from '@infrastructure/http/plugins/config';
 import { green, magenta } from 'kolorist';
-import { ct } from '@core/lib/ct';
+import { CT } from '@core/lib/ct';
 
 class CTAdapter {
   private server;
-  private ct;
+  private ct: CT;
   private debug: boolean = false;
   private Customer = { customerGroup: 'VIP' };
   private Categories = new Map<string, string>([
@@ -28,7 +28,7 @@ class CTAdapter {
   constructor(server: any) {
     this.server = server;
     // Create apiRoot from the imported ClientBuilder and include your Project key
-    this.ct = ct(this.server);
+    this.ct = new CT(this.server);
     this.debug = server.config.DEBUG;
   }
 
@@ -65,7 +65,7 @@ class CTAdapter {
                       }
                   }`;
 
-    const cart = await this.ct
+    const cart = await this.ct.api
       .graphql()
       .post({ body: { query } })
       .execute()
@@ -87,7 +87,7 @@ class CTAdapter {
   // Add a customline for each type=lineDiscount
   async addDiscounts(cart: any, discounts: any[]) {
     let count = 1;
-    return await this.ct
+    return await this.ct.api
       .carts()
       .withId({ ID: cart.id })
       .post({
@@ -261,7 +261,7 @@ export class PromotionService implements IPromotionService {
     if (result.err) return result;
     // console.log(result.val);
     // if (cartId) {
-    //   const discountsResult = await this.ct.addDiscounts(cart, result.val);
+    //   const discountsResult = await this.ctAdapter.addDiscounts(cart, result.val);
     //   if (discountsResult.errors)
     //     return new Err(new AppError(ErrorCode.BAD_REQUEST, discountsResult.errors[0].message));
     // }

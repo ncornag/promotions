@@ -1,11 +1,4 @@
-import { fakerEN, fakerDE } from '@faker-js/faker';
 import { MongoClient } from 'mongodb';
-import { nanoid } from 'nanoid';
-
-function randomIntFromInterval(min: number, max: number) {
-  // min and max included
-  return Math.floor(Math.random() * (max - min + 1) + min);
-}
 
 let catCounter = 1;
 let promCounter = 1;

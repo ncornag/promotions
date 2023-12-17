@@ -1,13 +1,6 @@
 import 'dotenv/config';
-import { nanoid } from 'nanoid';
-import { ct } from '../src/core/lib/ct';
-import { ByProjectKeyRequestBuilder } from '@commercetools/platform-sdk/dist/declarations/src/generated/client/by-project-key-request-builder';
-import {
-  CartPagedQueryResponse,
-  Product as Cart,
-  ProductPagedQueryResponse,
-  ProductVariant
-} from '@commercetools/platform-sdk';
+import { CT } from '../src/core/lib/ct';
+import { CartPagedQueryResponse } from '@commercetools/platform-sdk';
 
 const server = {
   config: process.env
@@ -15,12 +8,12 @@ const server = {
 
 class CartTools {
   private server: any;
-  private ct: ByProjectKeyRequestBuilder;
+  private ct: CT;
   private logCount = 1000;
 
   constructor(server: any) {
     this.server = server;
-    this.ct = ct(this.server);
+    this.ct = new CT(this.server);
   }
 
   public async writeAndLog(count: number, logCount: number, start: number, carts: any[], force: boolean = false) {
@@ -48,7 +41,7 @@ class CartTools {
         queryArgs.where = `id > "${lastId}"`;
         delete queryArgs.offset;
       }
-      body = (await this.ct.carts().get({ queryArgs }).execute()).body;
+      body = (await this.ct.api.carts().get({ queryArgs }).execute()).body;
       console.log(
         `offset: ${body.offset} limit: ${body.limit} count: ${body.count} query: ${JSON.stringify(queryArgs)}`
       );
