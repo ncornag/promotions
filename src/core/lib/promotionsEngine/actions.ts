@@ -4,20 +4,18 @@ import { green, yellow } from 'kolorist';
 export class EngineActions {
   private server: any;
   private expressions: Expressions;
-  private debug: boolean = false;
 
-  constructor(server: any, expressions: Expressions, debug: boolean = false) {
+  constructor(server: any, expressions: Expressions) {
     this.server = server;
     this.expressions = expressions;
-    this.debug = debug;
   }
 
   async createLineDiscount(facts: any, bindings: any, promotionId: any, action: any) {
-    if (this.debug) console.log(yellow('    ACTION: LineDiscount'));
+    this.server.log.debug(yellow('    ACTION: LineDiscount'));
     const skuExpressionResult = await this.expressions.evaluate(action.sku, facts, bindings);
     const discountExpressionResult = await this.expressions.evaluate(action.discount, facts, bindings);
-    if (this.debug) console.log(`      ${green('sku')}: ${action.sku} = ${green(skuExpressionResult)}`);
-    if (this.debug) console.log(`      ${green('discount')}: ${action.discount} = ${green(discountExpressionResult)}`);
+    this.server.log.debug(`      ${green('sku')}: ${action.sku} = ${green(skuExpressionResult)}`);
+    this.server.log.debug(`      ${green('discount')}: ${action.discount} = ${green(discountExpressionResult)}`);
     bindings.discounts.push({
       promotionId,
       type: 'lineDiscount',
@@ -27,9 +25,9 @@ export class EngineActions {
   }
 
   async createOrderDiscount(facts: any, bindings: any, promotionId: any, action: any) {
-    if (this.debug) console.log(yellow('    ACTION: OrderDiscount'));
+    this.server.log.debug(yellow('    ACTION: OrderDiscount'));
     const discountExpressionResult = await this.expressions.evaluate(action.discount, facts, bindings);
-    if (this.debug) console.log(`      ${green('discount')}: ${action.discount} = ${green(discountExpressionResult)}`);
+    this.server.log.debug(`      ${green('discount')}: ${action.discount} = ${green(discountExpressionResult)}`);
     bindings.discounts.push({
       promotionId,
       type: 'orderDiscount',
@@ -38,26 +36,25 @@ export class EngineActions {
   }
 
   async tagAsUsed(facts: any, bindings: any, promotionId: any, action: any) {
-    if (this.debug) console.log(yellow('    ACTION: tagging as used'));
-    for await (const product of action.products) {
-      const productIdExpressionResult = await this.expressions.evaluate(product.productId, facts, bindings);
-      const productIndex = facts.products.findIndex((p: any) => p.id === productIdExpressionResult);
+    this.server.log.debug(yellow('    ACTION: tagging as used'));
+    for await (const item of action.items) {
+      const productIdExpressionResult = await this.expressions.evaluate(item.productId, facts, bindings);
+      const productIndex = facts.items.findIndex((p: any) => p.id === productIdExpressionResult);
       if (productIndex != -1) {
-        const quantityExpressionResult = await this.expressions.evaluate(product.quantity, facts, bindings);
-        if (this.debug)
-          console.log(
-            `      ${green('productId')}: ${product.productId} = ${green(productIdExpressionResult)} | ${green(
-              'quantity'
-            )}: ${product.quantity} = ${green(quantityExpressionResult)} | ${
-              facts.products[productIndex].quantity
-            } => ${facts.products[productIndex].quantity - quantityExpressionResult}`
-          );
-        facts.products[productIndex].quantity -= quantityExpressionResult;
-        if (facts.products[productIndex].quantity <= 0) {
-          facts.products.splice(productIndex, 1);
+        const quantityExpressionResult = await this.expressions.evaluate(item.quantity, facts, bindings);
+        this.server.log.debug(
+          `      ${green('productId')}: ${item.productId} = ${green(productIdExpressionResult)} | ${green(
+            'quantity'
+          )}: ${item.quantity} = ${green(quantityExpressionResult)} | ${facts.items[productIndex].quantity} => ${
+            facts.items[productIndex].quantity - quantityExpressionResult
+          }`
+        );
+        facts.items[productIndex].quantity -= quantityExpressionResult;
+        if (facts.items[productIndex].quantity <= 0) {
+          facts.items.splice(productIndex, 1);
         }
       } else {
-        throw new Error(`Product ${product.productId} ${productIdExpressionResult} not found`);
+        throw new Error(`Product ${item.productId} ${productIdExpressionResult} not found`);
       }
     }
   }

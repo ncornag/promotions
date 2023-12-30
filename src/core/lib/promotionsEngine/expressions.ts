@@ -8,14 +8,14 @@ export class Expressions {
     this.server = server;
   }
 
-  productWithSku(products: any, sku: string) {
+  productWithSku(items: any, sku: string) {
     // const e = expression(`products["products[sku='${sku}']`);
-    return products.find((p: any) => p.sku === sku);
+    return items.find((p: any) => p.sku === sku);
   }
 
-  productInCategory(products: any, category: string) {
+  productInCategory(items: any, category: string) {
     // const e = expression(`products["${category}" in categories][0]`);
-    return products.find((p: any) => p.categories.find((c: any) => c === category) != undefined);
+    return items.find((p: any) => p.categories.find((c: any) => c === category) != undefined);
   }
 
   lowestPricedProductInCategory(products: any, category: string) {
@@ -23,15 +23,15 @@ export class Expressions {
     let min: number = Number.MAX_SAFE_INTEGER;
     let result: any;
     for (const product of products) {
-      if (product.categories.find((c: any) => c === category) != undefined && product.centAmount < min) {
-        min = product.centAmount;
+      if (product.categories.find((c: any) => c === category) != undefined && product.value.centAmount < min) {
+        min = product.value.centAmount;
         result = product;
       }
     }
     return result;
   }
 
-  getExpression(expression: string): Expression {
+  public getExpression(expression: string): Expression {
     let compiled: Expression | undefined = this.cache.get(expression);
     if (!compiled) {
       compiled = jsonata(expression);

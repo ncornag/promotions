@@ -16,7 +16,6 @@ import { CT } from '@core/lib/ct';
 class CTAdapter {
   private server;
   private ct: CT;
-  private debug: boolean = false;
   private Customer = { customerGroup: 'VIP' };
   private Categories = new Map<string, string>([
     ['SKU1', 'shoes'],
@@ -29,7 +28,6 @@ class CTAdapter {
     this.server = server;
     // Create apiRoot from the imported ClientBuilder and include your Project key
     this.ct = new CT(this.server);
-    this.debug = server.config.DEBUG;
   }
 
   convertCart(cart: any) {
@@ -255,7 +253,7 @@ export class PromotionService implements IPromotionService {
       facts = this.ctAdapter.convertCart(cart);
       //console.log(facts);
     } else {
-      facts.total = facts.products.reduce((acc: number, item: any) => acc + item.centAmount * item.quantity, 0); // Added for quick testing
+      facts.total = facts.items.reduce((acc: number, item: any) => acc + item.centAmount * item.quantity, 0); // Added for quick testing
     }
     const result = await this.server.promotionsEngine.run(facts, promotionId);
     if (result.err) return result;

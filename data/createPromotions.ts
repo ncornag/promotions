@@ -4,8 +4,8 @@ let catCounter = 1;
 let promCounter = 1;
 
 function createRandomPromotion(projectId: string): any {
-  const cat1 = 'cat' + catCounter++;
-  const cat2 = 'cat' + catCounter++;
+  const cat1 = 'category-' + catCounter++;
+  const cat2 = 'category-' + catCounter++;
   let result: any = {
     _id: `prom${promCounter++}`,
     projectId,
@@ -15,21 +15,21 @@ function createRandomPromotion(projectId: string): any {
     //active: true, // Default true
     name: `Buy 1 ${cat1} and get 10% off in 1 ${cat2}`,
     when: {
-      // baseProduct: `products['${cat1}' in categories][0]`,
-      // minPrice: `$min(products['${cat2}' in categories].centAmount)`,
-      // secondProduct: `products['${cat2}' in categories and centAmount=$minPrice][0]`
-      baseProduct: `$productInCategory(products, '${cat1}')`,
-      secondProduct: `$lowestPricedProductInCategory(products, '${cat2}')`
+      // baseProduct: `items['${cat1}' in categories][0]`,
+      // minPrice: `$min(items['${cat2}' in categories].value.centAmount)`,
+      // secondProduct: `items['${cat2}' in categories and value.centAmount=$minPrice][0]`
+      baseProduct: `$productInCategory(items, '${cat1}')`,
+      secondProduct: `$lowestPricedProductInCategory(items, '${cat2}')`
     },
     then: [
       {
         action: 'createLineDiscount',
         sku: '$secondProduct.sku',
-        discount: '$secondProduct.centAmount * 0.1'
+        discount: '$secondProduct.value.centAmount * 0.1'
       },
       {
         action: 'tagAsUsed',
-        products: [
+        items: [
           { productId: '$baseProduct.id', quantity: '1' },
           { productId: '$secondProduct.id', quantity: '1' }
         ]

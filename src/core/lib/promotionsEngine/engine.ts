@@ -7,19 +7,16 @@ import { EngineActions } from './actions';
 import { Expressions } from './expressions';
 
 export class PromotionsEngine {
-  private debug = false;
   private server: any;
   private promotionsService: IPromotionService;
   private Actions: EngineActions;
   private expressions: Expressions;
-  // private promotions: Promotion[];
 
   constructor(server: any) {
     this.server = server;
     this.expressions = new Expressions(this.server);
-    this.Actions = new EngineActions(this.server, this.expressions, this.debug);
+    this.Actions = new EngineActions(this.server, this.expressions);
     this.promotionsService = PromotionService.getInstance(server);
-    this.debug = server.config.DEBUG;
   }
 
   async evaluateWhen(when: When, facts: any, bindings: any) {
@@ -27,16 +24,15 @@ export class PromotionsEngine {
     let result = true;
     for (const [key, value] of Object.entries(when)) {
       const expressionResult = await this.expressions.evaluate(value, facts, bindings);
-      if (this.debug)
-        if (expressionResult == undefined || (typeof expressionResult === 'boolean' && expressionResult !== true)) {
-          console.log(
-            gray(`    ${key}: ${value} = ${expressionResult?.sku ? expressionResult.sku : expressionResult}`)
-          );
-        } else {
-          console.log(
-            green(`    ${key}: ${reset(value)} = ${expressionResult?.sku ? expressionResult.sku : expressionResult}`)
-          );
-        }
+      if (expressionResult == undefined || (typeof expressionResult === 'boolean' && expressionResult !== true)) {
+        this.server.log.debug(
+          gray(`    ${key}: ${value} = ${expressionResult?.sku ? expressionResult.sku : expressionResult}`)
+        );
+      } else {
+        this.server.log.debug(
+          green(`    ${key}: ${reset(value)} = ${expressionResult?.sku ? expressionResult.sku : expressionResult}`)
+        );
+      }
       if (expressionResult == undefined || (typeof expressionResult === 'boolean' && expressionResult !== true)) {
         result = false;
         break;
@@ -44,7 +40,7 @@ export class PromotionsEngine {
       bindings[key] = expressionResult;
     }
     // const end = process.hrtime.bigint();
-    //if (this.debug) console.log(`${green('  evaluateWhen')} in ${magenta(Number(end - start))}ns`);
+    //this.server.log.debug(`${green('  evaluateWhen')} in ${magenta(Number(end - start))}ns`);
     return result;
   }
 
@@ -56,7 +52,7 @@ export class PromotionsEngine {
       // const start = process.hrtime.bigint();
       await this.Actions[action.action](facts, bindings, promotionId, action);
       // const end = process.hrtime.bigint();
-      // if (this.debug) console.log(`${green('    evaluateThen')} in ${magenta(Number(end - start))}ns`);
+      // this.server.log.debug(`${green('    evaluateThen')} in ${magenta(Number(end - start))}ns`);
     }
   }
 
@@ -76,16 +72,16 @@ export class PromotionsEngine {
     const promotions: Promotion[] = result.val;
     const securityStopExecutionTimes = 999;
     const start = process.hrtime.bigint();
-    const linesInCart = facts.products.length;
-    const productsInCart = facts.products.reduce((acc: number, item: any) => acc + item.quantity, 0);
+    const linesInCart = facts.items.length;
+    const productsInCart = facts.items.reduce((acc: number, item: any) => acc + item.quantity, 0);
     // Run each promotion in order
     for await (const promotion of promotions) {
-      if (this.debug) console.log(magenta(promotion.name));
+      this.server.log.debug(magenta(promotion.name));
       let rulesResult = false;
       let executions = 0;
       let maxExecutions = promotion.times || securityStopExecutionTimes;
       do {
-        if (this.debug) console.log(yellow(`  Pass ${executions + 1}/${promotion.times ? promotion.times : '∞'}`));
+        this.server.log.debug(yellow(`  Pass ${executions + 1}/${promotion.times ? promotion.times : '∞'}`));
         rulesResult = await this.evaluateWhen(promotion.when, facts, bindings);
         if (rulesResult === true) {
           // Actions
