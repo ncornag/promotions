@@ -94,8 +94,8 @@ export class PromotionsEngine {
     const end = process.hrtime.bigint();
     const diff = (Number(end - start) / 1000000).toFixed(3);
     const perMs = ((1000000 * promotions.length) / Number(end - start)).toFixed(2);
-    console.log(
-      `${green('PromotionsEngine.run in')} ${magenta(diff)}ms. ${yellow(
+    this.server.log.info(
+      `${green('  PromotionsEngine ran in')} ${magenta(diff)}ms. ${yellow(
         promotions.length
       )} promotions checked at ${magenta(perMs)} promotions/ms. in a cart with ${magenta(
         linesInCart

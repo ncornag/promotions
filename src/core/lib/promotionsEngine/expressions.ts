@@ -1,8 +1,9 @@
 import jsonata, { Expression } from 'jsonata';
+import NodeCache from 'node-cache';
 
 export class Expressions {
   private server: any;
-  private cache = new Map<string, Expression>();
+  private cache = new NodeCache({ useClones: false, stdTTL: 60 * 60 * 24, checkperiod: 60 * 60 });
 
   constructor(server: any) {
     this.server = server;
