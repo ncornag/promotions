@@ -174,6 +174,13 @@ export class PromotionService implements IPromotionService {
       ...payload
     });
     if (result.err) return result;
+    this.messages.publish(`global.promotion.insert`, {
+      source: toEntity(result.val),
+      metadata: {
+        type: 'entityInsert',
+        entity: 'promotion'
+      }
+    });
     return new Ok(toEntity(result.val));
   }
 
@@ -205,7 +212,7 @@ export class PromotionService implements IPromotionService {
       if (saveResult.err) return saveResult;
       toUpdateEntity.version = version + 1;
       // Send differences via messagging
-      this.messages.publish(this.config.EXCHANGE, this.config.ENTITY_UPDATE_ROUTE, {
+      this.messages.publish('global.promotion.update', {
         entity: 'promotion',
         source: entity,
         difference,
@@ -213,7 +220,7 @@ export class PromotionService implements IPromotionService {
       });
       // Send side effects via messagging
       actionRunnerResults.val.sideEffects?.forEach((sideEffect: any) => {
-        this.messages.publish(this.config.EXCHANGE, sideEffect.action, {
+        this.messages.publish('global.promotion.update.sideEffects', {
           ...sideEffect.data,
           metadata: { type: sideEffect.action }
         });

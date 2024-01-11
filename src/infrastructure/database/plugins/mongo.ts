@@ -31,19 +31,21 @@ export default fp(async function (server: FastifyInstance) {
 
   server.mongo.client.on('commandStarted', (event) => {
     if (ignoredCommandsForLogging.includes(event.commandName)) return;
-    server.log.debug(
-      `${magenta('#' + (requestContext.get(REQUEST_ID_STORE_KEY) || ''))} ${dbOut} ${event.requestId} ${green(
-        JSON.stringify(event.command)
-      )}`
-    );
+    if (server.log.isLevelEnabled('debug'))
+      server.log.debug(
+        `${magenta('#' + (requestContext.get(REQUEST_ID_STORE_KEY) || ''))} ${dbOut} ${event.requestId} ${green(
+          JSON.stringify(event.command)
+        )}`
+      );
   });
   server.mongo.client.on('commandSucceeded', (event) => {
     if (ignoredCommandsForLogging.includes(event.commandName)) return;
-    server.log.debug(
-      `${magenta('#' + (requestContext.get(REQUEST_ID_STORE_KEY) || ''))} ${dbIn} ${event.requestId} ${green(
-        JSON.stringify(event.reply)
-      )}`
-    );
+    if (server.log.isLevelEnabled('debug'))
+      server.log.debug(
+        `${magenta('#' + (requestContext.get(REQUEST_ID_STORE_KEY) || ''))} ${dbIn} ${event.requestId} ${green(
+          JSON.stringify(event.reply)
+        )}`
+      );
   });
   server.mongo.client.on('commandFailed', (event) =>
     server.log.warn(

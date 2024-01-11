@@ -11,11 +11,13 @@ export class EngineActions {
   }
 
   async createLineDiscount(facts: any, bindings: any, promotionId: any, action: any) {
-    this.server.log.debug(yellow('    ACTION: LineDiscount'));
+    if (this.server.log.isLevelEnabled('debug')) this.server.log.debug(yellow('    ACTION: LineDiscount'));
     const skuExpressionResult = await this.expressions.evaluate(action.sku, facts, bindings);
     const discountExpressionResult = await this.expressions.evaluate(action.discount, facts, bindings);
-    this.server.log.debug(`      ${green('sku')}: ${action.sku} = ${green(skuExpressionResult)}`);
-    this.server.log.debug(`      ${green('discount')}: ${action.discount} = ${green(discountExpressionResult)}`);
+    if (this.server.log.isLevelEnabled('debug'))
+      this.server.log.debug(`      ${green('sku')}: ${action.sku} = ${green(skuExpressionResult)}`);
+    if (this.server.log.isLevelEnabled('debug'))
+      this.server.log.debug(`      ${green('discount')}: ${action.discount} = ${green(discountExpressionResult)}`);
     bindings.discounts.push({
       promotionId,
       type: 'lineDiscount',
@@ -25,9 +27,10 @@ export class EngineActions {
   }
 
   async createOrderDiscount(facts: any, bindings: any, promotionId: any, action: any) {
-    this.server.log.debug(yellow('    ACTION: OrderDiscount'));
+    if (this.server.log.isLevelEnabled('debug')) this.server.log.debug(yellow('    ACTION: OrderDiscount'));
     const discountExpressionResult = await this.expressions.evaluate(action.discount, facts, bindings);
-    this.server.log.debug(`      ${green('discount')}: ${action.discount} = ${green(discountExpressionResult)}`);
+    if (this.server.log.isLevelEnabled('debug'))
+      this.server.log.debug(`      ${green('discount')}: ${action.discount} = ${green(discountExpressionResult)}`);
     bindings.discounts.push({
       promotionId,
       type: 'orderDiscount',
@@ -36,19 +39,20 @@ export class EngineActions {
   }
 
   async tagAsUsed(facts: any, bindings: any, promotionId: any, action: any) {
-    this.server.log.debug(yellow('    ACTION: tagging as used'));
+    if (this.server.log.isLevelEnabled('debug')) this.server.log.debug(yellow('    ACTION: tagging as used'));
     for await (const item of action.items) {
       const productIdExpressionResult = await this.expressions.evaluate(item.productId, facts, bindings);
       const productIndex = facts.items.findIndex((p: any) => p.id === productIdExpressionResult);
       if (productIndex != -1) {
         const quantityExpressionResult = await this.expressions.evaluate(item.quantity, facts, bindings);
-        this.server.log.debug(
-          `      ${green('productId')}: ${item.productId} = ${green(productIdExpressionResult)} | ${green(
-            'quantity'
-          )}: ${item.quantity} = ${green(quantityExpressionResult)} | ${facts.items[productIndex].quantity} => ${
-            facts.items[productIndex].quantity - quantityExpressionResult
-          }`
-        );
+        if (this.server.log.isLevelEnabled('debug'))
+          this.server.log.debug(
+            `      ${green('productId')}: ${item.productId} = ${green(productIdExpressionResult)} | ${green(
+              'quantity'
+            )}: ${item.quantity} = ${green(quantityExpressionResult)} | ${facts.items[productIndex].quantity} => ${
+              facts.items[productIndex].quantity - quantityExpressionResult
+            }`
+          );
         facts.items[productIndex].quantity -= quantityExpressionResult;
         if (facts.items[productIndex].quantity <= 0) {
           facts.items.splice(productIndex, 1);

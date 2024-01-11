@@ -25,13 +25,15 @@ export class PromotionsEngine {
     for (const [key, value] of Object.entries(when)) {
       const expressionResult = await this.expressions.evaluate(value, facts, bindings);
       if (expressionResult == undefined || (typeof expressionResult === 'boolean' && expressionResult !== true)) {
-        this.server.log.debug(
-          gray(`    ${key}: ${value} = ${expressionResult?.sku ? expressionResult.sku : expressionResult}`)
-        );
+        if (this.server.log.isLevelEnabled('debug'))
+          this.server.log.debug(
+            gray(`    ${key}: ${value} = ${expressionResult?.sku ? expressionResult.sku : expressionResult}`)
+          );
       } else {
-        this.server.log.debug(
-          green(`    ${key}: ${reset(value)} = ${expressionResult?.sku ? expressionResult.sku : expressionResult}`)
-        );
+        if (this.server.log.isLevelEnabled('debug'))
+          this.server.log.debug(
+            green(`    ${key}: ${reset(value)} = ${expressionResult?.sku ? expressionResult.sku : expressionResult}`)
+          );
       }
       if (expressionResult == undefined || (typeof expressionResult === 'boolean' && expressionResult !== true)) {
         result = false;
@@ -76,12 +78,13 @@ export class PromotionsEngine {
     const productsInCart = facts.items.reduce((acc: number, item: any) => acc + item.quantity, 0);
     // Run each promotion in order
     for await (const promotion of promotions) {
-      this.server.log.debug(magenta(promotion.name));
+      if (this.server.log.isLevelEnabled('debug')) this.server.log.debug(magenta(promotion.name));
       let rulesResult = false;
       let executions = 0;
       let maxExecutions = promotion.times || securityStopExecutionTimes;
       do {
-        this.server.log.debug(yellow(`  Pass ${executions + 1}/${promotion.times ? promotion.times : '∞'}`));
+        if (this.server.log.isLevelEnabled('debug'))
+          this.server.log.debug(yellow(`  Pass ${executions + 1}/${promotion.times ? promotion.times : '∞'}`));
         rulesResult = await this.evaluateWhen(promotion.when, facts, bindings);
         if (rulesResult === true) {
           // Actions
