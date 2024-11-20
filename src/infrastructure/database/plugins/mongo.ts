@@ -2,7 +2,7 @@ import fp from 'fastify-plugin';
 import mongo from '@fastify/mongodb';
 import { FastifyInstance } from 'fastify';
 import { green, red, magenta, yellow, bold } from 'kolorist';
-import { Collection } from '@fastify/mongodb/node_modules/mongodb';
+import { Collection } from 'mongodb';
 import { requestContext } from '@fastify/request-context';
 import { REQUEST_ID_STORE_KEY, PROJECT_ID_STORE_KEY } from '@infrastructure/http/plugins/requestContext';
 
@@ -22,7 +22,7 @@ export default fp(async function (server: FastifyInstance) {
   const { MONGO_URL: mongoUrl } = server.config;
   await server.register(mongo, { forceClose: true, url: mongoUrl, monitorCommands: true });
 
-  server.log.info(`Conected to MongoDB at [${mongoUrl}]`);
+  server.log.info(`${yellow('MongoDB')} ${green('starting in')} [${mongoUrl}]`);
 
   // Log
   const dbOut = bold(yellow('→')) + yellow('DB:');

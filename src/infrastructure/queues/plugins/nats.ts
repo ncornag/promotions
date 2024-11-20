@@ -3,6 +3,7 @@ import { PublishOptions, JSONCodec, connect } from 'nats';
 import { FastifyInstance } from 'fastify';
 import { requestContext } from '@fastify/request-context';
 import { REQUEST_ID_STORE_KEY, PROJECT_ID_STORE_KEY } from '@infrastructure/http/plugins/requestContext';
+import { green, yellow } from 'kolorist';
 
 declare module 'fastify' {
   export interface FastifyInstance {
@@ -50,5 +51,5 @@ export default fp(async function (server: FastifyInstance) {
     }
   });
 
-  server.log.info(`Connected to NATS at [${nats_url}]`);
+  server.log.info(`${yellow('Nats')} ${green('starting in')} [${nats_url}]`);
 });

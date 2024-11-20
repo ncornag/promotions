@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import { CT } from '../src/core/lib/ct';
 import { CartPagedQueryResponse } from '@commercetools/platform-sdk';
 

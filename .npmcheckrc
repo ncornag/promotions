@@ -1,0 +1,20 @@
+{
+    "depcheck": {
+        "ignoreMatches": [
+            "@core/*",
+            "@infrastructure/*",
+            "@mgcrea/pino-pretty-compact",
+            "@sinclair/typebox",
+            "fastify-print-routes",
+            "eslint-plugin-import",
+            "eslint-plugin-n",
+            "eslint-plugin-promise",
+            "eslint-plugin-prettier",
+            "eslint-config-prettier",
+            "lint-staged",
+            "ts-node",
+            "@types/node",
+            "ajv-formats"
+        ]
+    }
+}

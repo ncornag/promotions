@@ -5,6 +5,7 @@ export class AuditLogListener {
   private server: any;
   private service: IAuditLogService;
   private msgIn = bold(yellow('←')) + yellow('MSG:');
+  private TOPIC = '*.*.update';
 
   constructor(server: any) {
     this.server = server;
@@ -12,18 +13,14 @@ export class AuditLogListener {
   }
 
   public start() {
-    this.server.log.info(
-      `${magenta('#')}  ${yellow('AuditLogService')} ${green('starting in')} ${
-        this.server.config.ENTITY_UPDATE_ROUTE
-      }/${this.server.config.AUDITLOG_QUEUE}`
-    );
-    this.server.messages.subscribe(`*.*.update`, this.handler.bind(this));
+    this.server.log.info(`${yellow('AuditLogService')} ${green('starting in')} [${this.TOPIC}]`);
+    this.server.messages.subscribe(this.TOPIC, this.handler.bind(this));
   }
 
   private handler = async (data: any, server: any) => {
     if (!data.metadata.entity) return;
-    if (server.log.isLevelEnabled('debug'))
-      server.log.debug(
+    if (this.server.log.isLevelEnabled('debug'))
+      this.server.log.debug(
         `${magenta('#' + data.metadata.requestId || '')} ${this.msgIn} auditLog indexing ${green(data.source.id)}`
       );
     this.service.createAuditLog({

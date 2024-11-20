@@ -57,7 +57,7 @@ async function writeAndLog(
 
 const url = 'mongodb://localhost:27017';
 const client = new MongoClient(url);
-const dbName = 'ct2';
+const dbName = 'ecomm';
 const colName = 'Promotion';
 const promotionsToInsert = parseInt(process.argv[2]) || 1;
 const logCount = 1000;

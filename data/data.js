@@ -1,4 +1,4 @@
-use ct2;
+use ecomm;
 
 db.Promotion.deleteMany({});
 
@@ -113,7 +113,7 @@ db.Promotion.insertMany([
     _id: "10%OffFor500PlusSpend",
     name: "Spend more than €500 and get 10% off",
     when: {
-      totalAfterDiscounts: "total + $sum($discounts.centAmount)"
+      totalAfterDiscounts: "total + $sum($discounts.centAmount)",
       bigOrder: "$totalAfterDiscounts>=50000"
     },
     then: [{ 

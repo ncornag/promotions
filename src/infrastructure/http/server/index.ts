@@ -1,8 +1,3 @@
-import 'dotenv/config';
-
-import * as color from 'kolorist';
-color.options.supportLevel = 2; // Hack for fastify-request-logger@1.3.0 to allow 'supportsArt'
-
 import fastify, { type FastifyInstance, type FastifyServerOptions } from 'fastify';
 import { type TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import fastifyRequestLogger from '@mgcrea/fastify-request-logger';

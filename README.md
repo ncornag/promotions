@@ -91,7 +91,7 @@ The project provides a robust system for managing promotions, including creation
   - **Fetch Audit Logs**: `GET /audit-logs`
 
 - **Promotions Management**:
-  - Refer to `doc/ct2.postman_collection.json` for a detailed list of API endpoints and usage examples.
+  - Refer to `doc/ecomm.postman_collection.json` for a detailed list of API endpoints and usage examples.
 
 - **Cart Management with commercetools**:
   - Fetch a cart by ID and apply promotions using `CartTools` and the `PromotionService`.

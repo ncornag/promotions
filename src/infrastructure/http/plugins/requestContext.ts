@@ -45,6 +45,6 @@ function plugin(fastify: FastifyInstance, opts: { projectId: string }, done: () 
 }
 
 export const requestContextProvider = fp(plugin, {
-  fastify: '4.x',
+  fastify: '5.x',
   name: 'request-context-provider-plugin'
 });
