@@ -1,4 +1,4 @@
-import { AuditFields } from '@core/lib/auditFields';
+import { AuditFields } from '#core/lib/auditFields';
 import { Type, type Static } from '@sinclair/typebox';
 
 // ENTITY

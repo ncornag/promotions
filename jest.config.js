@@ -96,8 +96,8 @@ module.exports = {
 
   // A map from regular expressions to module names or to arrays of module names that allow to stub out resources with a single module
   moduleNameMapper: {
-    "@core/(.*)": "<rootDir>/src/core/$1",
-    "@infrastructure/(.*)": "<rootDir>/src/infrastructure/$1",
+    "#core/(.*)": "<rootDir>/src/core/$1",
+    "#infrastructure/(.*)": "<rootDir>/src/infrastructure/$1",
     "@tests/(.*)": "<rootDir>/tests/$1"
   },
 

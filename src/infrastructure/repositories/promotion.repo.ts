@@ -1,9 +1,10 @@
-import { Db, Collection } from '@fastify/mongodb/node_modules/mongodb/mongodb';
-import { Ok, Err, Result } from 'ts-results';
-import { ErrorCode, AppError } from '@core/lib/appError';
-import { type IPromotionRepository } from '@core/repositories/promotion.repo';
-import { Promotion } from '@core/entities/promotion';
-import { PromotionDAO } from '@infrastructure/repositories/dao/promotion.dao.schema';
+import tsresult, { type Result } from 'ts-results';
+const { Ok, Err } = tsresult;
+import { Db, Collection } from 'mongodb';
+import { ErrorCode, AppError } from '#core/lib/appError';
+import { type IPromotionRepository } from '#core/repositories/promotion.repo';
+import { type Promotion } from '#core/entities/promotion';
+import { type PromotionDAO } from '#infrastructure/repositories/dao/promotion.dao.schema';
 
 export const getPromotionCollection = (db: Db): Collection<PromotionDAO> => {
   return db.collection<PromotionDAO>('Promotion');

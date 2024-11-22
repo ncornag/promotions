@@ -1,10 +1,10 @@
-import { AuditFields } from '@core/lib/auditFields';
-import { CreateAuditLogBodySchema } from '@infrastructure/http/schemas/auditLog.schemas';
+import { AuditFields } from '#core/lib/auditFields';
+import { CreateAuditLogBodySchema } from '#infrastructure/http/schemas/auditLog.schemas';
 import { Type, type Static, FormatRegistry } from '@sinclair/typebox';
 
 // Action Types
-export enum PromotionUpdateActionType {
-  CHANGENAME = 'changeName'
+const PromotionUpdateActionType: Record<string, string> = {
+  CHANGENAME: 'changeName'
 }
 
 // ACTIONS
@@ -26,10 +26,10 @@ export type UpdatePromotionAction = Static<typeof UpdatePromotionAction>;
 // THEN
 
 // Action Types
-export enum ThenActionType {
-  CREATELINEDISCOUNT = 'createLineDiscount',
-  CREATEORDERDISCOUNT = 'createOrderDiscount',
-  TAGASUSED = 'tagAsUsed'
+const ThenActionType: Record<string, string> = {
+  CREATELINEDISCOUNT: 'createLineDiscount',
+  CREATEORDERDISCOUNT: 'createOrderDiscount',
+  TAGASUSED: 'tagAsUsed'
 }
 
 // createLineDiscount action

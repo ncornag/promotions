@@ -1,6 +1,6 @@
 import { type FastifySchema } from 'fastify';
 import { Type, type Static } from '@sinclair/typebox';
-import { UpdatePromotionAction, PromotionSchema } from '@core/entities/promotion';
+import { UpdatePromotionAction, PromotionSchema } from '#core/entities/promotion';
 
 const defaultExample = {
   name: 'Buy 1 from "shoes" and get €50 off 1 "trainers"',

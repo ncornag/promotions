@@ -1,9 +1,10 @@
-import { Err, Ok, Result } from 'ts-results';
-import { AppError, ErrorCode } from '@core/lib/appError';
+import tsresult, { type Result } from 'ts-results';
+const { Ok, Err } = tsresult;
+import { AppError, ErrorCode } from '#core/lib/appError';
 import { nanoid } from 'nanoid';
-import { type AuditLog } from '@core/entities/auditLog';
-import { AuditLogDAO } from '@infrastructure/repositories/dao/auditLog.dao.schema';
-import { IAuditLogRepository } from '@core/repositories/auditLog.repo';
+import { type AuditLog } from '#core/entities/auditLog';
+import { type AuditLogDAO } from '#infrastructure/repositories/dao/auditLog.dao.schema';
+import { type IAuditLogRepository } from '#core/repositories/auditLog.repo';
 import { JSONPath } from 'jsonpath-plus';
 
 // SERVICE INTERFACE

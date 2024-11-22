@@ -1,17 +1,18 @@
-import { Err, Ok, Result } from 'ts-results';
-import { AppError, ErrorCode } from '@core/lib/appError';
+import tsresult, { type Result } from 'ts-results';
+const { Ok, Err } = tsresult;
+import { AppError, ErrorCode } from '#core/lib/appError';
 import { Value } from '@sinclair/typebox/value';
 import { nanoid } from 'nanoid';
-import { type Promotion, UpdatePromotionAction } from '@core/entities/promotion';
-import { type CreatePromotionBody } from '@infrastructure/http/schemas/promotion.schemas';
-import { PromotionDAO } from '@infrastructure/repositories/dao/promotion.dao.schema';
-import { ActionHandlersList } from '@core/services/actions';
-import { IPromotionRepository } from '@core/repositories/promotion.repo';
-import { UpdateEntityActionsRunner } from '@core/lib/updateEntityActionsRunner';
-import { ChangeNameActionHandler } from './actions/changeName.handler';
-import { Config } from '@infrastructure/http/plugins/config';
+import { type Promotion, UpdatePromotionAction } from '#core/entities/promotion';
+import { type CreatePromotionBody } from '#infrastructure/http/schemas/promotion.schemas';
+import { type PromotionDAO } from '#infrastructure/repositories/dao/promotion.dao.schema';
+import { type ActionHandlersList } from '#core/services/actions/index';
+import { type IPromotionRepository } from '#core/repositories/promotion.repo';
+import { UpdateEntityActionsRunner } from '#core/lib/updateEntityActionsRunner';
+import { ChangeNameActionHandler } from './actions/changeName.handler.ts';
+import { type Config } from '#infrastructure/http/plugins/config';
 import { green, magenta } from 'kolorist';
-import { CT } from '@core/lib/ct';
+import { CT } from '#core/lib/ct';
 
 class CTAdapter {
   private server;

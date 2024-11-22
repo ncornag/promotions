@@ -1,8 +1,8 @@
 {
     "depcheck": {
         "ignoreMatches": [
-            "@core/*",
-            "@infrastructure/*",
+            "#core/*",
+            "#infrastructure/*",
             "@mgcrea/pino-pretty-compact",
             "@sinclair/typebox",
             "fastify-print-routes",
@@ -14,7 +14,9 @@
             "lint-staged",
             "ts-node",
             "@types/node",
-            "ajv-formats"
+            "ajv-formats",
+            "rimraf",
+            "pino"
         ]
     }
 }

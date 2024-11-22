@@ -1,5 +1,5 @@
-import { PromotionSchema } from '@core/entities/promotion';
-import { Static, Type } from '@sinclair/typebox';
+import { PromotionSchema } from '#core/entities/promotion';
+import { type Static, Type } from '@sinclair/typebox';
 
 // DAO
 export const PromotionDAOSchema = Type.Composite([

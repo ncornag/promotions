@@ -1,6 +1,6 @@
 import fp from 'fastify-plugin';
-import { FastifyPluginCallback } from 'fastify';
-import { Validator } from '@core/lib/validator';
+import { type FastifyPluginCallback } from 'fastify';
+import { Validator } from '#core/lib/validator';
 
 declare module 'fastify' {
   export interface FastifyInstance {

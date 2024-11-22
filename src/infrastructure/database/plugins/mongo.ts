@@ -1,13 +1,14 @@
 import fp from 'fastify-plugin';
 import mongo from '@fastify/mongodb';
-import { FastifyInstance } from 'fastify';
+import { type FastifyInstance } from 'fastify';
 import { green, red, magenta, yellow, bold } from 'kolorist';
 import { Collection } from 'mongodb';
 import { requestContext } from '@fastify/request-context';
-import { REQUEST_ID_STORE_KEY, PROJECT_ID_STORE_KEY } from '@infrastructure/http/plugins/requestContext';
+import { REQUEST_ID_STORE_KEY, PROJECT_ID_STORE_KEY } from '#infrastructure/http/plugins/requestContext';
+import pino from 'pino';
 
-import { PromotionRepository, getPromotionCollection } from '@infrastructure/repositories/promotion.repo';
-import { AuditLogRepository, getAuditLogCollection } from '@infrastructure/repositories/auditLog.repo';
+import { PromotionRepository, getPromotionCollection } from '#infrastructure/repositories/promotion.repo';
+import { AuditLogRepository, getAuditLogCollection } from '#infrastructure/repositories/auditLog.repo';
 
 declare module 'fastify' {
   export interface FastifyInstance {
@@ -28,11 +29,12 @@ export default fp(async function (server: FastifyInstance) {
   const dbOut = bold(yellow('→')) + yellow('DB:');
   const dbIn = bold(yellow('←')) + yellow('DB:');
   const ignoredCommandsForLogging = ['createIndexes', 'listCollections', 'currentOp', 'drop'];
+  const logger = server.log.child({}, { level: server.config.LOG_LEVEL_DB ?? server.config.LOG_LEVEL }) as pino.Logger
 
   server.mongo.client.on('commandStarted', (event) => {
     if (ignoredCommandsForLogging.includes(event.commandName)) return;
-    if (server.log.isLevelEnabled('debug'))
-      server.log.debug(
+    if (logger.isLevelEnabled('debug'))
+      logger.debug(
         `${magenta('#' + (requestContext.get(REQUEST_ID_STORE_KEY) || ''))} ${dbOut} ${event.requestId} ${green(
           JSON.stringify(event.command)
         )}`
@@ -40,15 +42,15 @@ export default fp(async function (server: FastifyInstance) {
   });
   server.mongo.client.on('commandSucceeded', (event) => {
     if (ignoredCommandsForLogging.includes(event.commandName)) return;
-    if (server.log.isLevelEnabled('debug'))
-      server.log.debug(
+    if (logger.isLevelEnabled('debug'))
+      logger.debug(
         `${magenta('#' + (requestContext.get(REQUEST_ID_STORE_KEY) || ''))} ${dbIn} ${event.requestId} ${green(
           JSON.stringify(event.reply)
         )}`
       );
   });
   server.mongo.client.on('commandFailed', (event) =>
-    server.log.warn(
+    logger.warn(
       `${magenta('#' + (requestContext.get(REQUEST_ID_STORE_KEY) || ''))} ${dbIn} ${event.requestId} ${red(
         JSON.stringify(event, null, 2)
       )}`

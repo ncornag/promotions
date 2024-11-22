@@ -1,13 +1,11 @@
 import fetch from 'node-fetch';
-import { createApiBuilderFromCtpClient } from '@commercetools/platform-sdk';
-
+import { createApiBuilderFromCtpClient, ByProjectKeyRequestBuilder } from '@commercetools/platform-sdk';
 import {
   ClientBuilder,
   // Import middlewares
   type AuthMiddlewareOptions, // Required for auth
   type HttpMiddlewareOptions // Required for sending HTTP requests
 } from '@commercetools/sdk-client-v2';
-import { ByProjectKeyRequestBuilder } from '@commercetools/platform-sdk/dist/declarations/src/generated/client/by-project-key-request-builder';
 
 export class CT {
   private server: any;

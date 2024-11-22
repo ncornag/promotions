@@ -1,5 +1,5 @@
-import { AuditLogSchema } from '@core/entities/auditLog';
-import { Static, Type } from '@sinclair/typebox';
+import { AuditLogSchema } from '#core/entities/auditLog';
+import { type Static, Type } from '@sinclair/typebox';
 
 // DAO
 export const AuditLogDAOSchema = Type.Composite([

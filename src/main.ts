@@ -1,7 +1,4 @@
-/* eslint-disable import/first */
-require('module-alias/register');
-import { createServer } from '@infrastructure/http/server';
-/* eslint-enable import/first */
+import { createServer } from '#infrastructure/http/server/index';
 
 const main = async (): Promise<void> => {
   const server = await createServer();

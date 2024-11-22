@@ -1,9 +1,10 @@
 import fp from 'fastify-plugin';
-import { PublishOptions, JSONCodec, connect } from 'nats';
-import { FastifyInstance } from 'fastify';
+import { type PublishOptions, JSONCodec, connect } from 'nats';
+import { type FastifyInstance } from 'fastify';
 import { requestContext } from '@fastify/request-context';
-import { REQUEST_ID_STORE_KEY, PROJECT_ID_STORE_KEY } from '@infrastructure/http/plugins/requestContext';
-import { green, yellow } from 'kolorist';
+import { REQUEST_ID_STORE_KEY, PROJECT_ID_STORE_KEY } from '#infrastructure/http/plugins/requestContext';
+import { green, red, yellow, magenta, bold } from 'kolorist';
+import pino from 'pino';
 
 declare module 'fastify' {
   export interface FastifyInstance {
@@ -19,7 +20,10 @@ export default fp(async function (server: FastifyInstance) {
     connection_name: 'catalog',
     drainOnClose: true
   };
+  const msgOut = bold(yellow('→')) + yellow('MSG:');
   const { NATS_URL: nats_url } = server.config;
+  const logger = server.log.child({}, { level: server.config.LOG_LEVEL_NATS ?? server.config.LOG_LEVEL }) as pino.Logger
+
   const nc = await connect({ name: options.connection_name, servers: nats_url });
   server.addHook('onClose', async (instance) => {
     if (options.drainOnClose === true) {
@@ -47,6 +51,10 @@ export default fp(async function (server: FastifyInstance) {
       const metadata = payload.metadata || {};
       metadata.projectId = metadata.projectId || requestContext.get(PROJECT_ID_STORE_KEY);
       metadata.requestId = metadata.requestId || requestContext.get(REQUEST_ID_STORE_KEY);
+      if (logger.isLevelEnabled('debug'))
+        logger.debug(
+          `${magenta('#' + metadata.requestId || '')} ${msgOut} ${green('publishing to')} [${subject}] ${green(JSON.stringify(payload))}`
+        );
       nc.publish(subject, JSONCodec().encode(payload), options);
     }
   });

@@ -30,18 +30,19 @@ The project provides a robust system for managing promotions, including creation
 ## Stack
 
 - Fastify
-- Mongodb
 - Typebox
 - JSONata
+- Mongodb
+- NATS
+- TypeSense
 
 ## Setup Instructions
 
 ### Prerequisites
 
-- **Node.js** (v14 or higher)
+- **Node.js** (v22 or higher)
 - **MongoDB** (v4.4 or higher)
 - **commercetools SDK**
-- **NPM** or **Yarn**
 
 ### Installation
 

@@ -1,7 +1,8 @@
-import { Ok, Result } from 'ts-results';
-import { AppError } from '@core/lib/appError';
-import { UpdatePromotionChangeName } from '@core/entities/promotion';
-import { ActionHandlerResult } from '@core/services/actions';
+import tsresult, { type Result } from 'ts-results';
+const { Ok, Err } = tsresult;
+import { AppError } from '#core/lib/appError';
+import { type UpdatePromotionChangeName } from '#core/entities/promotion';
+import { type ActionHandlerResult } from '#core/services/actions/index';
 
 interface DAOwithName {
   [key: string]: any;
@@ -17,7 +18,7 @@ export class ChangeNameActionHandler<Repository> {
     entity: DAOwithName,
     toUpdateEntity: DAOwithName,
     action: UpdatePromotionChangeName,
-    classificationCategoryRepository: Repository
+    repo: Repository
   ): Promise<Result<ActionHandlerResult, AppError>> {
     if (entity.name === action.name) return new Ok({ update: {} });
     toUpdateEntity.name = action.name;

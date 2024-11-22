@@ -1,11 +1,12 @@
-import { FastifyInstance, FastifyPluginAsync, FastifyPluginOptions, FastifyReply, FastifyRequest } from 'fastify';
-import { Result } from 'ts-results';
-import { AppError } from '@core/lib/appError';
-import { AuditlogService } from '@core/services/auditLog.svc';
-import { FindAuditLogParms, FindAuditLogsQueryString } from '@infrastructure/http/schemas/auditLog.schemas';
-import { AuditLog } from '@core/entities/auditLog';
+import type { FastifyInstance, FastifyPluginOptions, FastifyReply, FastifyRequest } from 'fastify';
+import tsresult, { type Result } from 'ts-results';
+const { Ok, Err } = tsresult;
+import { AppError } from '#core/lib/appError';
+import { AuditlogService } from '#core/services/auditLog.svc';
+import { type FindAuditLogParms, type FindAuditLogsQueryString } from '#infrastructure/http/schemas/auditLog.schemas';
+import { type AuditLog } from '#core/entities/auditLog';
 
-export default <FastifyPluginAsync>async function (server: FastifyInstance, opts: FastifyPluginOptions) {
+export default async function (server: FastifyInstance, opts: FastifyPluginOptions) {
   let service = AuditlogService.getInstance(server);
 
   // GET ONE

@@ -1,21 +1,22 @@
-import { Ok, Err, Result } from 'ts-results';
-import { AppError, ErrorCode } from '../appError';
-import { PromotionService, IPromotionService } from '@core/services/promotion.svc';
-import { Promotion, Then, When } from '@core/entities/promotion';
+import tsresult, { type Result } from 'ts-results';
+const { Ok, Err } = tsresult;
+import { AppError, ErrorCode } from '../appError.ts';
+import { PromotionService, type IPromotionService } from '#core/services/promotion.svc';
+import { type Promotion, type Then, type When } from '#core/entities/promotion';
 import { green, magenta, yellow, gray, reset } from 'kolorist';
-import { EngineActions } from './actions';
-import { Expressions } from './expressions';
+import { EngineActions } from './actions.ts';
+import { Expressions } from './expressions.ts';
 
 export class PromotionsEngine {
   private server: any;
   private promotionsService: IPromotionService;
-  private Actions: EngineActions;
+  private actions: EngineActions;
   private expressions: Expressions;
 
   constructor(server: any) {
     this.server = server;
     this.expressions = new Expressions(this.server);
-    this.Actions = new EngineActions(this.server, this.expressions);
+    this.actions = new EngineActions(this.server, this.expressions);
     this.promotionsService = PromotionService.getInstance(server);
   }
 
@@ -25,12 +26,12 @@ export class PromotionsEngine {
     for (const [key, value] of Object.entries(when)) {
       const expressionResult = await this.expressions.evaluate(value, facts, bindings);
       if (expressionResult == undefined || (typeof expressionResult === 'boolean' && expressionResult !== true)) {
-        if (this.server.log.isLevelEnabled('debug'))
+        if (this.server.logger.isLevelEnabled('debug'))
           this.server.log.debug(
             gray(`    ${key}: ${value} = ${expressionResult?.sku ? expressionResult.sku : expressionResult}`)
           );
       } else {
-        if (this.server.log.isLevelEnabled('debug'))
+        if (this.server.logger.isLevelEnabled('debug'))
           this.server.log.debug(
             green(`    ${key}: ${reset(value)} = ${expressionResult?.sku ? expressionResult.sku : expressionResult}`)
           );
@@ -48,11 +49,12 @@ export class PromotionsEngine {
 
   async evaluateThen(promotionId: any, then: Then, facts: any, bindings: any) {
     for await (const action of then) {
-      if (!this.Actions[action.action]) {
+      let actionName = action.action as keyof typeof this.actions.Actions;
+      if (!this.actions.Actions[actionName]) {
         throw new AppError(ErrorCode.BAD_REQUEST, `Action ${action.action} not found`);
       }
       // const start = process.hrtime.bigint();
-      await this.Actions[action.action](facts, bindings, promotionId, action);
+      await this.actions[actionName](facts, bindings, promotionId, action);
       // const end = process.hrtime.bigint();
       // this.server.log.debug(`${green('    evaluateThen')} in ${magenta(Number(end - start))}ns`);
     }
@@ -78,12 +80,12 @@ export class PromotionsEngine {
     const productsInCart = facts.items.reduce((acc: number, item: any) => acc + item.quantity, 0);
     // Run each promotion in order
     for await (const promotion of promotions) {
-      if (this.server.log.isLevelEnabled('debug')) this.server.log.debug(magenta(promotion.name));
+      if (this.server.logger.isLevelEnabled('debug')) this.server.log.debug(magenta(promotion.name));
       let rulesResult = false;
       let executions = 0;
       let maxExecutions = promotion.times || securityStopExecutionTimes;
       do {
-        if (this.server.log.isLevelEnabled('debug'))
+        if (this.server.logger.isLevelEnabled('debug'))
           this.server.log.debug(yellow(`  Pass ${executions + 1}/${promotion.times ? promotion.times : '∞'}`));
         rulesResult = await this.evaluateWhen(promotion.when, facts, bindings);
         if (rulesResult === true) {

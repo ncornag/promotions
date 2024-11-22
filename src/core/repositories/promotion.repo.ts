@@ -1,7 +1,8 @@
-import { Result } from 'ts-results';
-import { AppError } from '@core/lib/appError';
-import { Promotion } from '@core/entities/promotion';
-import { PromotionDAO } from '@infrastructure/repositories/dao/promotion.dao.schema';
+import tsresult, { type Result } from 'ts-results';
+const { Ok, Err } = tsresult;
+import { AppError } from '#core/lib/appError';
+import { type Promotion } from '#core/entities/promotion';
+import { type PromotionDAO } from '#infrastructure/repositories/dao/promotion.dao.schema';
 
 export interface IPromotionRepository {
   create: (category: Promotion) => Promise<Result<PromotionDAO, AppError>>;

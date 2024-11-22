@@ -1,18 +1,19 @@
-import { FastifyInstance, FastifyPluginAsync, FastifyPluginOptions, FastifyReply, FastifyRequest } from 'fastify';
-import { Result } from 'ts-results';
-import { AppError } from '@core/lib/appError';
-import { PromotionService } from '@core/services/promotion.svc';
+import tsresult, { type Result } from 'ts-results';
+const { Ok, Err } = tsresult;
+import type { FastifyInstance, FastifyPluginOptions, FastifyReply, FastifyRequest } from 'fastify';
+import { AppError } from '#core/lib/appError';
+import { PromotionService } from '#core/services/promotion.svc';
 import {
   postPromotionSchema,
-  CreatePromotionBody,
-  FindPromotionParms,
-  UpdatePromotionBody,
   updatePromotionSchema,
-  CalculatePromotionQueryString
-} from '@infrastructure/http/schemas/promotion.schemas';
-import { Promotion } from '@core/entities/promotion';
+  type CreatePromotionBody,
+  type FindPromotionParms,
+  type UpdatePromotionBody,
+  type CalculatePromotionQueryString
+} from '#infrastructure/http/schemas/promotion.schemas';
+import { type Promotion } from '#core/entities/promotion';
 
-export default <FastifyPluginAsync>async function (server: FastifyInstance, opts: FastifyPluginOptions) {
+export default async function (server: FastifyInstance, opts: FastifyPluginOptions) {
   let service = PromotionService.getInstance(server);
 
   // CREATE

@@ -1,9 +1,10 @@
-import { Db, Collection } from '@fastify/mongodb/node_modules/mongodb/mongodb';
-import { Ok, Err, Result } from 'ts-results';
-import { ErrorCode, AppError } from '@core/lib/appError';
-import { type IAuditLogRepository } from '@core/repositories/auditLog.repo';
-import { AuditLog } from '@core/entities/auditLog';
-import { AuditLogDAO } from '@infrastructure/repositories/dao/auditLog.dao.schema';
+import tsresult, { type Result } from 'ts-results';
+const { Ok, Err } = tsresult;
+import { Db, Collection } from 'mongodb';
+import { ErrorCode, AppError } from '#core/lib/appError';
+import { type IAuditLogRepository } from '#core/repositories/auditLog.repo';
+import { type AuditLog } from '#core/entities/auditLog';
+import { type AuditLogDAO } from '#infrastructure/repositories/dao/auditLog.dao.schema';
 
 export const getAuditLogCollection = (db: Db): Collection<AuditLogDAO> => {
   return db.collection<AuditLogDAO>('AuditLog');

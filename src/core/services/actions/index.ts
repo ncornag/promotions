@@ -1,12 +1,13 @@
-import { ChangeNameActionHandler } from './changeName.handler';
-import { Result } from 'ts-results';
-import { AppError } from '@core/lib/appError';
+import { ChangeNameActionHandler } from './changeName.handler.ts';
+import tsresult, { type Result } from 'ts-results';
+const { Ok, Err } = tsresult;
+import { AppError } from '#core/lib/appError';
 
 export interface ActionHandlerDAO {
   [key: string]: any;
 }
-export interface ActionData {}
-export interface ActionHandlerRepository {}
+export interface ActionData { }
+export interface ActionHandlerRepository { }
 
 export interface ActionHandler {
   run(

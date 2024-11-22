@@ -1,4 +1,4 @@
-import jsonata, { Expression } from 'jsonata';
+import jsonata, { type Expression } from 'jsonata';
 import NodeCache from 'node-cache';
 
 export class Expressions {

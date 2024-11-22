@@ -1,6 +1,6 @@
 import { type FastifySchema } from 'fastify';
 import { Type, type Static } from '@sinclair/typebox';
-import { AuditLogSchema } from '@core/entities/auditLog';
+import { AuditLogSchema } from '#core/entities/auditLog';
 
 // FIXME: This is a hack to get the example to work, cleanup the schemas
 
