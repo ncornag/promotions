@@ -3,6 +3,7 @@ import mongo from '@fastify/mongodb';
 import { type FastifyInstance } from 'fastify';
 import { green, red, magenta, yellow, bold } from 'kolorist';
 import { Collection } from 'mongodb';
+import { Umzug, MongoDBStorage } from 'umzug';
 import { requestContext } from '@fastify/request-context';
 import { REQUEST_ID_STORE_KEY, PROJECT_ID_STORE_KEY } from '#infrastructure/http/plugins/requestContext';
 import pino from 'pino';
@@ -152,6 +153,19 @@ export default fp(async function (server: FastifyInstance) {
   );
   createTargets.forEach((m: string) => createInterceptor(Collection, (Collection.prototype as any)[m] as Function, m));
   updateTargets.forEach((m: string) => updateInterceptor(Collection, (Collection.prototype as any)[m] as Function, m));
+
+  // Migrations
+  const migrator = new Umzug({
+    migrations: { glob: `data/migrations/${server.config.NODE_ENV}/*.ts` },
+    storage: new MongoDBStorage({
+      collection: server.mongo.db!.collection('migrations')
+    }),
+    logger,
+    context: {
+      server,
+    },
+  });
+  await migrator.up();
 
   // Register Collections
   server.db.col.promotion = getPromotionCollection(server.mongo.db!);

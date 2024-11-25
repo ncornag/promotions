@@ -6,6 +6,7 @@
     /* Modules */
     "module": "nodenext",
     "moduleResolution": "nodenext",
+    "resolveJsonModule": true,
     "rootDir": "src",
     "rootDirs": [
       "src",
@@ -26,6 +27,7 @@
   },
   "include": [
     "src/**/*",
-    "tests/**/*"
+    "tests/**/*",
+    "data/migrations"
   ]
 }
