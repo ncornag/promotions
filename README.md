@@ -1,3 +1,9 @@
+# Deprecated
+
+This project is not currently under active development, it has been replaced by [this one](https://github.com/ncornag/ecomm).
+
+---
+
 # Promotions
 
 This project is a scalable promotion management system that includes audit logging and cart management capabilities. It leverages MongoDB for data storage and integrates with commercetools for handling cart data.
@@ -47,12 +53,14 @@ The project provides a robust system for managing promotions, including creation
 ### Installation
 
 1. **Clone the repository**:
+
    ```bash
    git clone <repository_url>
    cd <repository_directory>
    ```
 
 2. **Install dependencies**:
+
    ```bash
    npm install
    # or
@@ -67,11 +75,13 @@ The project provides a robust system for managing promotions, including creation
 ### Running the Application
 
 - **To create promotions**:
+
   ```bash
   node data/createPromotions.ts <number_of_promotions>
   ```
 
 - **To evaluate promotions on a cart**:
+
   ```bash
   node src/core/lib/promotionsEngine/engine.ts <cart_id>
   ```
@@ -86,12 +96,14 @@ The project provides a robust system for managing promotions, including creation
 ## Usage Examples
 
 - **API Endpoints**:
+
   - **Create Promotion**: `POST /promotions`
   - **Get Promotion by ID**: `GET /promotions/:id`
   - **Update Promotion**: `PUT /promotions/:id`
   - **Fetch Audit Logs**: `GET /audit-logs`
 
 - **Promotions Management**:
+
   - Refer to `doc/ecomm.postman_collection.json` for a detailed list of API endpoints and usage examples.
 
 - **Cart Management with commercetools**:
@@ -108,13 +120,13 @@ The project provides a robust system for managing promotions, including creation
     shoesTotal: "$sum(products['shoes' in categories].(centAmount*quantity))>10000",
     shirt: "products['shirts' in categories]^(centAmount)[0]",
   },
-  then: [{ 
+  then: [{
       action: "createLineDiscount",
       sku: "$shirt.sku",
       discount: "$shirt.centAmount * 0.1"
-  },{ 
-      action: "tagAsUsed", 
-      products: [{ productId: "$shirt.id", quantity: "1" }] 
+  },{
+      action: "tagAsUsed",
+      products: [{ productId: "$shirt.id", quantity: "1" }]
   }],
   times: 1,
   version: 0,
@@ -123,26 +135,30 @@ The project provides a robust system for managing promotions, including creation
 ```
 
 ## Performance
-environment: 
-project: 
-cart: 
-  - 1000 lines
-  - 11 MB REST, 170KB GraphQL
-promotions:
-  - 500
-  - all false
-results (GraphQL fetch):
-  - PromotionsEngine.run in 77.500ms. 500 promotions checked at 6.45 promotions/ms. in a cart with 1000 lines and 5532 products. 0 discounts created.
-    - Get cart took 979.828ms
-    - 2023-12-18 09:40:47.029  info: #E0Z9l →POST:/promotions/calculate?cartId=21248cde-b22e-4000-b19a-ce6e014f1b4f response with a 200-status took 1096.659ms
 
-  - PromotionsEngine.run in 19.814ms. 500 promotions checked at 25.23 promotions/ms. in a cart with 1000 lines and 5532 products. 0 discounts created.
-    - Get cart took 798.057ms
-    - 2023-12-18 09:43:28.857  info: #UysY8 →POST:/promotions/calculate?cartId=21248cde-b22e-4000-b19a-ce6e014f1b4f response with a 200-status took 830.872ms
+environment:
+project:
+cart:
+
+- 1000 lines
+- 11 MB REST, 170KB GraphQL
+  promotions:
+- 500
+- all false
+  results (GraphQL fetch):
+- PromotionsEngine.run in 77.500ms. 500 promotions checked at 6.45 promotions/ms. in a cart with 1000 lines and 5532 products. 0 discounts created.
+
+  - Get cart took 979.828ms
+  - 2023-12-18 09:40:47.029 info: #E0Z9l →POST:/promotions/calculate?cartId=21248cde-b22e-4000-b19a-ce6e014f1b4f response with a 200-status took 1096.659ms
+
+- PromotionsEngine.run in 19.814ms. 500 promotions checked at 25.23 promotions/ms. in a cart with 1000 lines and 5532 products. 0 discounts created.
+  - Get cart took 798.057ms
+  - 2023-12-18 09:43:28.857 info: #UysY8 →POST:/promotions/calculate?cartId=21248cde-b22e-4000-b19a-ce6e014f1b4f response with a 200-status took 830.872ms
 
 ## Testing
 
 Run tests using Jest:
+
 ```bash
 npm test
 # or
